@@ -69,7 +69,7 @@ class TelaInicial(AtorJogador):
         )
         
         player_name = simpledialog.askstring(title="Player Identification", prompt="Qual é o seu nome?")
-        message = self.dog_server_interface.initialize(player_name,self)
+        message = self.dog_server_interface.initialize(player_name, self)
         messagebox.showinfo(message=message)
         self.window.mainloop()
     

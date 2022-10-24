@@ -78,7 +78,6 @@ class DogProxy:
         else:
             start_status = StartStatus("0", "Voce está offline", [], self.player_id)
 
-        print('PLAYERS:', start_status.players)
         return start_status
 
     def start_status(self):

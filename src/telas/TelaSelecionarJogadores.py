@@ -133,9 +133,4 @@ class TelaSelecionarJogadores(AtorJogador):
 
         tela_principal = TelaPrincipal(jogo, quantidade_de_jogadores)
         tela_principal.abrir()
-    
-
-    def receive_start(self, start_status):
-        message = start_status.get_message()
-        messagebox.showinfo(message=message)
 
