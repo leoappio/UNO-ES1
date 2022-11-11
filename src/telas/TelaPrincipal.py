@@ -20,6 +20,16 @@ class TelaPrincipal(AtorJogador):
     def relative_to_assets(path: str) -> Path:
         return ASSETS_PATH / Path(path)
 
+    
+    def receber_jogada(self):
+        meu_id = self.dog_server_interface.meu_id
+        self.jogo = self.jogo.receber_jogada(meu_id)
+        self.atualizar_interface()
+        self.dog_server_interface.send_move(self.jogo)
+
+
+    def atualizar_interface(self, jogo):
+        ...
 
     def abrir(self):
         canvas = Canvas(
