@@ -1,9 +1,6 @@
 from pathlib import Path
 from tkinter import Tk, Canvas, PhotoImage, Button, messagebox
-from classes.Baralho import Baralho
-from classes.Jogador import Jogador
 from classes.Jogo import Jogo
-from classes.Mesa import Mesa
 from telas.TelaPrincipal import TelaPrincipal
 from AtorJogador import AtorJogador
 
@@ -11,37 +8,36 @@ from AtorJogador import AtorJogador
 OUTPUT_PATH = Path(__file__).parent
 ASSETS_PATH = OUTPUT_PATH / Path("./arquivosSelecionarJogadores")
 
+
 class TelaSelecionarJogadores(AtorJogador):
     def __init__(self) -> None:
         super().__init__()
         self.window = Tk()
         self.window.title("UNO - Selecione os Jogadores")
         self.window.geometry("1600x900")
-        self.window.configure(bg = "#FFFFFF")
+        self.window.configure(bg="#FFFFFF")
         self.window.resizable(False, False)
-
 
     @staticmethod
     def relative_to_assets(path: str) -> Path:
         return ASSETS_PATH / Path(path)
-    
 
     def abrir(self):
         canvas = Canvas(
             self.window,
-            bg = "#FFFFFF",
-            height = 900,
-            width = 1600,
-            bd = 0,
-            highlightthickness = 0,
-            relief = "ridge"
+            bg="#FFFFFF",
+            height=900,
+            width=1600,
+            bd=0,
+            highlightthickness=0,
+            relief="ridge"
         )
 
-        canvas.place(x = 0, y = 0)
+        canvas.place(x=0, y=0)
 
         image_image_1 = PhotoImage(
             file=TelaSelecionarJogadores.relative_to_assets("image_1.png"))
-            
+
         image_1 = canvas.create_image(
             800.0,
             450.0,
@@ -64,7 +60,7 @@ class TelaSelecionarJogadores(AtorJogador):
             image=button_image_1,
             borderwidth=0,
             highlightthickness=0,
-            command=lambda: self.open_game_screen(2),
+            command=lambda: self.iniciar_partida(2),
             relief="flat"
         )
         button_1.place(
@@ -81,7 +77,7 @@ class TelaSelecionarJogadores(AtorJogador):
             image=button_image_2,
             borderwidth=0,
             highlightthickness=0,
-            command=lambda: self.open_game_screen(3),
+            command=lambda: self.iniciar_partida(3),
             relief="flat"
         )
         button_2.place(
@@ -98,7 +94,7 @@ class TelaSelecionarJogadores(AtorJogador):
             image=button_image_3,
             borderwidth=0,
             highlightthickness=0,
-            command=lambda: self.open_game_screen(4),
+            command=lambda: self.iniciar_partida(4),
             relief="flat"
         )
         button_3.place(
@@ -109,28 +105,34 @@ class TelaSelecionarJogadores(AtorJogador):
         )
 
         self.window.mainloop()
-    
 
-    def open_game_screen(self, quantidade_de_jogadores):
-        self.window.destroy()
-        # Instanciando jogo e jogadores teste para apresentação da interface
-        jogador1 = Jogador(1, "Player 1")
-        jogador2 = Jogador(2, "Player 2")
-        jogador3 = Jogador(3, "Player 3")
-        jogador4 = Jogador(4, "Player 4")
-        jogadores_remotos = [jogador2, jogador3, jogador4]
-
-        baralho = Baralho()
-        baralho.criar_baralho()
-        mesa = Mesa(baralho)
-        jogo = Jogo(mesa, jogadores_remotos, jogador1)
-        jogo.iniciar_jogo()
-
-        start_status = self.dog_server_interface.start_match(quantidade_de_jogadores)
+    def iniciar_partida(self, quantidade_de_jogadores):
+        start_status = self.dog_server_interface.start_match(
+            quantidade_de_jogadores)
         message = start_status.get_message()
         messagebox.showinfo(message=message)
+        codigo = start_status.get_code()
+        print('codigo: ', codigo)
 
+        if codigo == '2':
+            print('iniciar_jogo')
+            jogadores = start_status.get_players()
+            id_jogador_local = start_status.get_local_id()
+            jogo = Jogo()
+            jogo.iniciar_jogo(jogadores, id_jogador_local)
+            ordem_jogadores = jogo.get_ordem_jogadores()
+            print('ordem jogadores: ', ordem_jogadores)
+            if ordem_jogadores[0] == id_jogador_local:
+                pass  # enviar jogada
+            self.window.destroy()
+            tela_principal = TelaPrincipal(jogo, quantidade_de_jogadores)
+            tela_principal.abrir()
 
-        tela_principal = TelaPrincipal(jogo, quantidade_de_jogadores)
+    def receber_inicio(self, start_status):
+        jogadores = start_status.get_players()
+        id_jogador_local = start_status.get_local_id()
+        jogo = Jogo()
+        jogo.iniciar_jogo(jogadores, id_jogador_local)
+        print(jogo.get_jogadores)
+        tela_principal = TelaPrincipal(jogo, len(jogadores))
         tela_principal.abrir()
-

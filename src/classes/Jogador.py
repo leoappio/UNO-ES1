@@ -7,3 +7,6 @@ class Jogador:
         self.vencedor = False
         self.num_cartas = 0
         self.tem_carta_valida = False
+
+    def set_mao(self, mao):
+        self.mao = mao
