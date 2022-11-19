@@ -43,8 +43,8 @@ class Baralho:
     
     def eh_especial(self, carta):
         cod_retorno = 0
-        if isinstance(carta, CartaEspecial):
-            if isinstance(carta, CartaCuringa):
+        if isinstance(carta, CartaCuringa):
+            if isinstance(carta, CartaEspecial):
                 if carta.tipo == 'bloqueio':
                     cod_retorno = 3
                 elif carta.tipo == 'mais_dois':

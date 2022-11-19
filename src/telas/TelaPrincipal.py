@@ -1,11 +1,9 @@
 from pathlib import Path
 from tkinter import Tk, Canvas, Button, PhotoImage
-from AtorJogador import AtorJogador
 OUTPUT_PATH = Path(__file__).parent
 ASSETS_PATH = OUTPUT_PATH / Path("./arquivosTelaPrincipal")
 
-
-class TelaPrincipal(AtorJogador):
+class TelaPrincipal():
     def __init__(self, jogo, quantidade_de_jogadores):
         super().__init__()
         self.window = Tk()
@@ -45,7 +43,7 @@ class TelaPrincipal(AtorJogador):
         background_image = PhotoImage(
             file=self.relative_to_assets("background.png"))
 
-        canvas_bg_image = canvas.create_image(
+        canvas.create_image(
             800.0,
             450.0,
             image=background_image

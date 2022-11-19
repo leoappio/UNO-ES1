@@ -2,14 +2,13 @@ from pathlib import Path
 from tkinter import Tk, Canvas, PhotoImage, Button, messagebox
 from classes.Jogo import Jogo
 from telas.TelaPrincipal import TelaPrincipal
-from AtorJogador import AtorJogador
 
 
 OUTPUT_PATH = Path(__file__).parent
 ASSETS_PATH = OUTPUT_PATH / Path("./arquivosSelecionarJogadores")
 
 
-class TelaSelecionarJogadores(AtorJogador):
+class TelaSelecionarJogadores():
     def __init__(self) -> None:
         super().__init__()
         self.window = Tk()
@@ -104,35 +103,4 @@ class TelaSelecionarJogadores(AtorJogador):
             height=240.0
         )
 
-        self.window.mainloop()
-
-    def iniciar_partida(self, quantidade_de_jogadores):
-        start_status = self.dog_server_interface.start_match(
-            quantidade_de_jogadores)
-        message = start_status.get_message()
-        messagebox.showinfo(message=message)
-        codigo = start_status.get_code()
-        print('codigo: ', codigo)
-
-        if codigo == '2':
-            print('iniciar_jogo')
-            jogadores = start_status.get_players()
-            id_jogador_local = start_status.get_local_id()
-            jogo = Jogo()
-            jogo.iniciar_jogo(jogadores, id_jogador_local)
-            ordem_jogadores = jogo.get_ordem_jogadores()
-            print('ordem jogadores: ', ordem_jogadores)
-            if ordem_jogadores[0] == id_jogador_local:
-                pass  # enviar jogada
-            self.window.destroy()
-            tela_principal = TelaPrincipal(jogo, quantidade_de_jogadores)
-            tela_principal.abrir()
-
-    def receber_inicio(self, start_status):
-        jogadores = start_status.get_players()
-        id_jogador_local = start_status.get_local_id()
-        jogo = Jogo()
-        jogo.iniciar_jogo(jogadores, id_jogador_local)
-        print(jogo.get_jogadores)
-        tela_principal = TelaPrincipal(jogo, len(jogadores))
-        tela_principal.abrir()
+        self.window.mainloop()  
