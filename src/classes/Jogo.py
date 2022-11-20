@@ -1,12 +1,15 @@
+import json
 from classes.Baralho import Baralho
 from classes.Jogador import Jogador
 from classes.Mesa import Mesa
 import jsons
-
+from classes.CartaCuringa import CartaCuringa
+from classes.CartaEspecial import CartaEspecial
+from classes.CartaNumerada import CartaNumerada
 
 class Jogo:
     def __init__(self):
-        self.jogadores = []
+        self.jogadores = [None, None, None]
         self.jogador_local = None
         self.id_local = ''
         self.partida_em_andamento = False
@@ -19,9 +22,11 @@ class Jogo:
 
     def get_proximo_jogador_por_id(self, id)->Jogador:
         indice_jogador_atual = self.ordem_jogadores.index(id)
+        print('indice jogador atual = ', indice_jogador_atual)
+        print('len ordem jogadores', len(self.ordem_jogadores))
 
         proximo_id = 0
-        if len(self.ordem_jogadores) == indice_jogador_atual-1:
+        if len(self.ordem_jogadores) -1 == indice_jogador_atual:
             proximo_id = self.ordem_jogadores[0]
         else:
             proximo_id = self.ordem_jogadores[indice_jogador_atual+1]
@@ -31,6 +36,12 @@ class Jogo:
                 return jogador
 
     
+    def get_jogador_por_id(self, id)->Jogador:
+        for jogador in self.jogadores:
+            if jogador.id == id:
+                return jogador
+
+
     def get_ordem_jogadores(self):
         return self.ordem_jogadores
 
@@ -85,7 +96,54 @@ class Jogo:
 
         self.mesa.pegar_carta_inicio()
         self.set_jogador_local()
-    
+
+
+    def atualizar_propriedades(self, tipo_jogada, dict_jogada):
+        if tipo_jogada == '1':
+            #convertendo jogadores
+            for i in range(3):
+                dict_jogador = json.loads(dict_jogada[f'jogador{i+1}'])
+                id = dict_jogador["id"]
+                nome = dict_jogador["nome"]
+                mao = self.converter_dict_cartas_para_objetos(dict_jogador['mao'])
+                gritou_uno = dict_jogador['gritou_uno']
+                vencedor = dict_jogador['vencedor']
+                num_cartas = dict_jogador['num_cartas']
+                tem_carta_valida = dict_jogador['tem_carta_valida']
+                self.jogadores[i] = Jogador(id, nome, mao, gritou_uno, vencedor, num_cartas, tem_carta_valida)
+
+            dict_mesa = json.loads(dict_jogada['mesa'])
+            cartas_baralho = self.converter_dict_cartas_para_objetos(dict_mesa['baralho']['cartas'])
+            baralho = Baralho(cartas_baralho)
+            print('carta atual:',dict_mesa['carta_atual'])
+            carta_atual = self.converter_dict_cartas_para_objetos([dict_mesa['carta_atual']])[0]
+            self.mesa = Mesa(baralho, carta_atual)
+
+            self.id_jogador_da_vez = dict_jogada['id_jogador_da_vez']
+        
+        self.set_ordem_jogadores()
+        self.set_jogador_local()
+
+
+    def converter_dict_cartas_para_objetos(self, cartas):
+        cartas_obj = []
+        for carta in cartas:
+            if 'mais_quatro' in carta:
+                mais_quatro = carta['mais_quatro']
+                cor_escolhida = carta['cor_escolhida']
+                cartas_obj.append(CartaCuringa(mais_quatro, cor_escolhida))
+            elif 'numero' in carta:
+                cor = carta['cor']
+                tipo = carta['tipo']
+                numero = carta['numero']
+                cartas_obj.append(CartaNumerada(cor, tipo, numero))
+            else:
+                cor = carta['cor']
+                tipo = carta['tipo']
+                cartas_obj.append(CartaEspecial(cor, tipo))
+        
+        return cartas_obj
+
 
     def get_dict_enviar_jogada(self, tipo_jogada):
         jogada = {}
@@ -104,6 +162,7 @@ class Jogo:
         self.log[2] = self.log[1]
         self.log[1] = self.log[0]
         self.log[0] = texto_log
+
 
     def validar_carta(self, indice):
         print(f'carta {self.jogador_local.mao[indice].codigo} clicada')

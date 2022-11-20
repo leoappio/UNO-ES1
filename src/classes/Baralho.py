@@ -5,8 +5,8 @@ from classes.CartaCuringa import CartaCuringa
 import random
 
 class Baralho:
-    def __init__(self):
-        self.cartas = []
+    def __init__(self, cartas=[]):
+        self.cartas = cartas
 
     def criar_baralho(self):
         cores = ["vermelho", "amarelo", "verde", "azul"]

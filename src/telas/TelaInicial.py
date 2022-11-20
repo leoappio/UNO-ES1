@@ -1,5 +1,5 @@
 from pathlib import Path
-from tkinter import Tk, Canvas, PhotoImage, Button, messagebox, simpledialog
+from tkinter import Tk, Canvas, PhotoImage, Button, Toplevel, messagebox, simpledialog
 from dog.dog_interface import DogPlayerInterface
 from dog.dog_actor import DogActor
 from classes.Jogo import Jogo
@@ -81,12 +81,18 @@ class TelaInicial(DogPlayerInterface):
 
 
     def receive_move(self, a_move):
-        #tipo 1 = inicio do jogo
+        print('receive move chamado')
+        self.jogo.atualizar_propriedades(a_move['tipo_jogada'], a_move)
         if a_move['tipo_jogada'] == '1':
-            print(a_move)
+            print('abrindo tela partida')
+            self.abrir_tela_partida()
+        else:
+            ...
+            #self.atualizar_interface()
 
 
     def receive_start(self, start_status):
+        print('receive start chamado')
         id_jogador_local = start_status.get_local_id()
         self.jogo = Jogo()
         self.jogo.id_local = id_jogador_local      
@@ -106,15 +112,14 @@ class TelaInicial(DogPlayerInterface):
             self.jogo.iniciar_jogo(jogadores, id_jogador_local)
             dict_jogada = self.jogo.get_dict_enviar_jogada('1')
             self.dog_server_interface.send_move(dict_jogada)
-            self.abrir_tela_partida(start_status)
+            self.abrir_tela_partida()
     
 
-    def abrir_tela_partida(self, start_status):
-        local_id = start_status.local_id
-        self.canvas.delete("all")
-
-        self.canvas = Canvas(
-            self.window,
+    def abrir_tela_partida(self):
+        nova_tela = Toplevel(self.window)
+        local_id = self.jogo.id_local
+        self.canvas_jogo = Canvas(
+            nova_tela,
             bg="#FFFFFF",
             height=900,
             width=1600,
@@ -123,21 +128,24 @@ class TelaInicial(DogPlayerInterface):
             relief="ridge"
         )
 
-        self.canvas.place(x=0, y=0)
+        self.canvas_jogo.place(x=0, y=0)
 
         background_image = PhotoImage(
+            master=nova_tela,
             file=self.relative_to_assets("background.png"))
 
-        self.canvas.create_image(
+        self.canvas_jogo.create_image(
             800.0,
             450.0,
             image=background_image
         )
 
         uno_back_image = PhotoImage(
+            master=nova_tela,
             file=self.relative_to_assets("uno_back.png"))
 
         botao_baralho_cartas = Button(
+            master=nova_tela,
             image=uno_back_image,
             command=lambda: print("botão baralho clicado"),
         )
@@ -150,9 +158,10 @@ class TelaInicial(DogPlayerInterface):
         )
 
         table_image = PhotoImage(
+            master=nova_tela,
             file=self.relative_to_assets(f'./baralho/{self.jogo.mesa.carta_atual.codigo}.png'))
 
-        self.canvas.create_image(
+        self.canvas_jogo.create_image(
             873.0,
             450.0,
             image=table_image
@@ -163,11 +172,13 @@ class TelaInicial(DogPlayerInterface):
         print('tamanho mao local', len(self.jogo.jogador_local.mao))
         for i, carta in enumerate(self.jogo.jogador_local.mao):
             carta_imagem = PhotoImage(
+                master=nova_tela,
                 file=self.relative_to_assets(f'./baralho/{carta.codigo}.png'))
 
             cartas_jogador_local.append(carta_imagem)
 
             carta_botao = Button(
+                master=nova_tela,
                 image=cartas_jogador_local[i],
                 command=lambda i=i: self.jogo.validar_carta(i)
             )
@@ -179,7 +190,7 @@ class TelaInicial(DogPlayerInterface):
                 height=147.0
             )
 
-        self.canvas.create_text(
+        self.canvas_jogo.create_text(
             756.0,
             640.0,
             anchor="nw",
@@ -194,15 +205,16 @@ class TelaInicial(DogPlayerInterface):
         print('tamanho mao cima', len(jogador_cima.mao))
         for i in range(len(jogador_cima.mao)):
             jogador_remoto_cima_imagem = PhotoImage(
+                master=nova_tela,
                 file=self.relative_to_assets("jogador_remoto_cima.png"))
             jogador_remoto_cima.append(jogador_remoto_cima_imagem)
-            self.canvas.create_image(
+            self.canvas_jogo.create_image(
                 (643.0+i*52),
                 129.0,
                 image=jogador_remoto_cima[i]
             )
 
-        self.canvas.create_text(
+        self.canvas_jogo.create_text(
             755.0,
             217.0,
             anchor="nw",
@@ -213,7 +225,7 @@ class TelaInicial(DogPlayerInterface):
 
         #POSICIONANDO QUEM JOGA ANTES DE MIM(DIREITA)
         jogador_direita = self.jogo.get_proximo_jogador_por_id(jogador_cima.id)
-        self.canvas.create_text(
+        self.canvas_jogo.create_text(
             1109.0,
             432.0,
             anchor="nw",
@@ -225,17 +237,21 @@ class TelaInicial(DogPlayerInterface):
         jogador_remoto_direita = []
         for i in range(len(jogador_direita.mao)):
             jogador_remoto_direita_imagem = PhotoImage(
+                master=nova_tela,
                 file=self.relative_to_assets("jogador_remoto_direita.png"))
             jogador_remoto_direita.append(jogador_remoto_direita_imagem)
-            self.canvas.create_image(
+            self.canvas_jogo.create_image(
                 1335.0,
                 (294.0+i*52),
                 image=jogador_remoto_direita[i]
             )
 
         botao_uno_image = PhotoImage(
+            master=nova_tela,
             file=self.relative_to_assets("botao_uno.png"))
+
         botao_uno = Button(
+            master=nova_tela,
             image=botao_uno_image,
             command=lambda: print("Fulano gritou uno"),
         )
@@ -246,13 +262,15 @@ class TelaInicial(DogPlayerInterface):
             height=80.0
         )
 
-        self.canvas.create_text(
+        jogador_da_vez = self.jogo.get_jogador_por_id(self.jogo.id_jogador_da_vez)
+
+        self.canvas_jogo.create_text(
             115.0,
             82.0,
             anchor="nw",
-            text="Vez de Fulano\nCor da rodada: vermelho",
+            text=f"Vez de {jogador_da_vez.nome}\nCor da rodada: vermelho",
             fill="#000000",
             font=("Poppins Regular", 24 * -1)
         )
 
-        self.window.mainloop()
+        #nova_tela.mainloop()
