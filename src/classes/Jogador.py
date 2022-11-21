@@ -11,9 +11,9 @@ class Jogador:
 
     def set_mao(self, mao):
         self.mao = mao
-
-    def atualizar_tem_carta_valida(self):
-        ...
+    
+    def get_mao(self):
+        return self.mao
     
     def baixar_uma_carta(self, indice_na_mao):
         self.mao.pop(indice_na_mao)

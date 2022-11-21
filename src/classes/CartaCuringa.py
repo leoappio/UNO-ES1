@@ -1,4 +1,4 @@
-from classes.Carta import Carta
+from Carta import Carta
 
 class CartaCuringa(Carta):
     def __init__(self, mais_quatro, cor_escolhida =""):

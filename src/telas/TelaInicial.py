@@ -83,12 +83,14 @@ class TelaInicial(DogPlayerInterface):
     def receive_move(self, a_move):
         print('receive move chamado')
         self.jogo.receber_jogada(a_move['tipo_jogada'], a_move)
-        if a_move['tipo_jogada'] == '1':
-            print('abrindo tela partida')
+        if a_move['tipo_jogada'] == 'jogada_inicial':
             self.abrir_tela_partida()
         else:
-            ...
-            #self.atualizar_interface()
+            self.atualizar_interface()
+    
+
+    def atualizar_interface(self):
+        ...
 
 
     def receive_start(self, start_status):
@@ -114,6 +116,28 @@ class TelaInicial(DogPlayerInterface):
             self.dog_server_interface.send_move(dict_jogada)
             self.abrir_tela_partida()
     
+
+    def abaixar_carta(self, indice_carta):
+        ...
+    
+
+    def gritar_uno(self):
+        if self.jogo.id_jogador_da_vez == self.jogo.id_local:
+            jogador = self.jogo.get_jogador_por_id(self.jogo.id_local)
+            jogador.gritou_uno = True
+    
+    
+    def comprar_uma_carta(self):
+        if self.jogo.id_jogador_da_vez == self.jogo.id_local:
+            if len(jogador.mao) < 20:
+                jogador = self.jogo.get_jogador_por_id(self.jogo.id_local)
+                carta_comprada = self.jogo.baralho.pegar_carta()
+                jogador.mao.append(carta_comprada)
+                self.atualizar_interface()
+                tem_carta_valida = self.jogo.tem_carta_valida()
+                dict_jogada = self.jogo.get_dict_enviar_jogada('comprar_uma_carta', jogador, finalizou_turno=tem_carta_valida)
+                self.dog_server_interface.send_move(dict_jogada)
+
 
     def abrir_tela_partida(self):
         nova_tela = Toplevel(self.window)

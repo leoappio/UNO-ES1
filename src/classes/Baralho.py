@@ -1,6 +1,6 @@
-from classes.CartaNumerada import CartaNumerada
-from classes.CartaEspecial import CartaEspecial
-from classes.CartaCuringa import CartaCuringa
+from CartaNumerada import CartaNumerada
+from CartaEspecial import CartaEspecial
+from CartaCuringa import CartaCuringa
 
 import random
 
