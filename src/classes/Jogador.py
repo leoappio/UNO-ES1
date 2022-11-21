@@ -14,3 +14,6 @@ class Jogador:
 
     def atualizar_tem_carta_valida(self):
         ...
+    
+    def baixar_uma_carta(self, indice_na_mao):
+        self.mao.pop(indice_na_mao)

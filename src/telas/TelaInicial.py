@@ -82,7 +82,7 @@ class TelaInicial(DogPlayerInterface):
 
     def receive_move(self, a_move):
         print('receive move chamado')
-        self.jogo.atualizar_propriedades(a_move['tipo_jogada'], a_move)
+        self.jogo.receber_jogada(a_move['tipo_jogada'], a_move)
         if a_move['tipo_jogada'] == '1':
             print('abrindo tela partida')
             self.abrir_tela_partida()

@@ -98,8 +98,8 @@ class Jogo:
         self.set_jogador_local()
 
 
-    def atualizar_propriedades(self, tipo_jogada, dict_jogada):
-        if tipo_jogada == '1':
+    def receber_jogada(self, tipo_jogada, dict_jogada):
+        if tipo_jogada == 'jogada_inicial':
             #convertendo jogadores
             for i in range(3):
                 dict_jogador = json.loads(dict_jogada[f'jogador{i+1}'])
@@ -115,14 +115,50 @@ class Jogo:
             dict_mesa = json.loads(dict_jogada['mesa'])
             cartas_baralho = self.converter_dict_cartas_para_objetos(dict_mesa['baralho']['cartas'])
             baralho = Baralho(cartas_baralho)
-            print('carta atual:',dict_mesa['carta_atual'])
             carta_atual = self.converter_dict_cartas_para_objetos([dict_mesa['carta_atual']])[0]
-            self.mesa = Mesa(baralho, carta_atual)
-
+            cor_atual = dict_mesa['cor_atual']
+            self.mesa = Mesa(baralho, carta_atual, cor_atual)
             self.id_jogador_da_vez = dict_jogada['id_jogador_da_vez']
+        elif tipo_jogada == 'abaixar_uma_carta':
+            jogador = self.get_jogador_por_id(dict_jogada['id_jogador'])
+            jogador.baixar_uma_carta(int(dict_jogada['indice_carta_baixada']))
+            carta_baixada = self.converter_dict_cartas_para_objetos([dict_jogada['carta']])[0]
+            self.mesa.carta_atual = carta_baixada
+
+            if isinstance(carta_baixada, CartaCuringa):
+                if carta_baixada.mais_quatro:
+                    prox_jogador = self.get_proximo_jogador_por_id(jogador.id)
+                    cartas = self.baralho.comprar_x_cartas(4)
+                    prox_jogador.mao.append(cartas)
+                    self.set_id_jogador_da_vez(jogador.id, pular_dois=True)
+            elif isinstance(carta_baixada, CartaEspecial):
+                if carta_baixada.tipo == 'bloqueio':
+                    ...
+                elif carta_baixada.tipo == 'mais_dois':
+                    ...
+                elif carta_baixada.tipo == 'inverte':
+                    ...
+            else:
+                self.mesa.set_cor_atual()
+
+
+        elif tipo_jogada == 'comprar_uma_carta':
+            ...
+        
         
         self.set_ordem_jogadores()
         self.set_jogador_local()
+
+
+    def set_id_jogador_da_vez(self, id_jogador, pular_dois=False):
+        if pular_dois:
+            jogador_pulado = self.get_proximo_jogador_por_id(id_jogador)
+            prox_jogador = self.get_proximo_jogador_por_id(jogador_pulado)
+            self.id_jogador_da_vez = prox_jogador
+        else:
+            prox_jogador = self.get_proximo_jogador_por_id(id_jogador)
+            self.id_jogador_da_vez = prox_jogador
+
 
 
     def converter_dict_cartas_para_objetos(self, cartas):
@@ -145,9 +181,10 @@ class Jogo:
         return cartas_obj
 
 
-    def get_dict_enviar_jogada(self, tipo_jogada):
+    def get_dict_enviar_jogada(self, tipo_jogada, jogador=None,
+     finalizou_turno=False, indice_carta_baixada=0):
         jogada = {}
-        if tipo_jogada == '1':
+        if tipo_jogada == 'jogada_inicial':
             jogada['match_status'] = 'next'
             jogada['tipo_jogada'] = '1'
             jogada['jogador1'] = jsons.dumps(self.jogadores[0].__dict__)
@@ -155,6 +192,17 @@ class Jogo:
             jogada['jogador3'] = jsons.dumps(self.jogadores[2].__dict__)
             jogada['mesa'] = jsons.dumps(self.mesa.__dict__)
             jogada['id_jogador_da_vez'] = self.id_jogador_da_vez
+        elif tipo_jogada == 'abaixar_uma_carta':
+            jogada['id_jogador'] = jogador.id
+            jogada['carta'] = self.mesa.carta_atual
+            jogada['indice_carta_baixada'] = indice_carta_baixada
+            jogada['gritou_uno'] = jogador.gritou_uno
+            jogada['venceu_partida'] = len(jogador.mao) == 0
+        elif tipo_jogada == 'comprar_uma_carta':
+            jogada['id_jogador'] = jogador.id
+            jogada['gritou_uno'] = jogador.gritou_uno
+            jogada['finalizou_turno'] = finalizou_turno
+
         return jogada
             
 
