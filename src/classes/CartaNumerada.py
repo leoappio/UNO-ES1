@@ -1,4 +1,3 @@
-import classes.Carta as Carta
 from classes.CartaColorida import CartaColorida
 
 class CartaNumerada(CartaColorida):

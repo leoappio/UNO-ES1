@@ -5,8 +5,8 @@ from classes.CartaCuringa import CartaCuringa
 import random
 
 class Baralho:
-    def __init__(self):
-        self.cartas = []
+    def __init__(self, cartas=[]):
+        self.cartas = cartas
 
     def criar_baralho(self):
         cores = ["vermelho", "amarelo", "verde", "azul"]
@@ -36,15 +36,33 @@ class Baralho:
 
         return mao_aux
 
-    def pegar_carta_aleatoria(self):
+
+    def pegar_carta(self):
         carta = self.cartas.pop()
         return carta
+
+
+    def comprar_x_cartas(self, x):
+        cartas_compradas = []
+        for i in range (x):
+            cartas_compradas.append(self.pegar_carta())
+
+        return cartas_compradas
+
+    
+    def pegar_carta_inicial(self):
+        while True:
+            carta = self.cartas.pop()
+            if not isinstance(carta, CartaCuringa) and not isinstance(carta, CartaEspecial):
+                return carta       
+            
+            self.cartas.append(carta)
 
     
     def eh_especial(self, carta):
         cod_retorno = 0
-        if isinstance(carta, CartaEspecial):
-            if isinstance(carta, CartaCuringa):
+        if isinstance(carta, CartaCuringa):
+            if isinstance(carta, CartaEspecial):
                 if carta.tipo == 'bloqueio':
                     cod_retorno = 3
                 elif carta.tipo == 'mais_dois':

@@ -1,32 +1,28 @@
 from pathlib import Path
 from tkinter import Tk, Canvas, Button, PhotoImage
-from AtorJogador import AtorJogador
 OUTPUT_PATH = Path(__file__).parent
 ASSETS_PATH = OUTPUT_PATH / Path("./arquivosTelaPrincipal")
 
-class TelaPrincipal(AtorJogador):
+class TelaPrincipal():
     def __init__(self, jogo, quantidade_de_jogadores):
         super().__init__()
         self.window = Tk()
         self.window.title("UNO")
         self.window.geometry("1600x900")
-        self.window.configure(bg = "#FFFFFF")
+        self.window.configure(bg="#FFFFFF")
         self.window.resizable(False, False)
         self.jogo = jogo
         self.quantidade_de_jogadores = quantidade_de_jogadores
-
 
     @staticmethod
     def relative_to_assets(path: str) -> Path:
         return ASSETS_PATH / Path(path)
 
-    
     def receber_jogada(self):
         meu_id = self.dog_server_interface.meu_id
         self.jogo = self.jogo.receber_jogada(meu_id)
         self.atualizar_interface()
         self.dog_server_interface.send_move(self.jogo)
-
 
     def atualizar_interface(self, jogo):
         ...
@@ -34,20 +30,20 @@ class TelaPrincipal(AtorJogador):
     def abrir(self):
         canvas = Canvas(
             self.window,
-            bg = "#FFFFFF",
-            height = 900,
-            width = 1600,
-            bd = 0,
-            highlightthickness = 0,
-            relief = "ridge"
+            bg="#FFFFFF",
+            height=900,
+            width=1600,
+            bd=0,
+            highlightthickness=0,
+            relief="ridge"
         )
 
-        canvas.place(x = 0, y = 0)
+        canvas.place(x=0, y=0)
 
         background_image = PhotoImage(
             file=self.relative_to_assets("background.png"))
 
-        canvas_bg_image = canvas.create_image(
+        canvas.create_image(
             800.0,
             450.0,
             image=background_image
@@ -76,14 +72,14 @@ class TelaPrincipal(AtorJogador):
             450.0,
             image=table_image
         )
-        
+
         cartas_jogador_local = []
-        for i, carta in enumerate(self.jogo.jogador_local.mao): 
+        for i, carta in enumerate(self.jogo.jogador_local.mao):
             carta_imagem = PhotoImage(
-                            file=self.relative_to_assets(f'./baralho/{carta.codigo}.png'))
+                file=self.relative_to_assets(f'./baralho/{carta.codigo}.png'))
 
             cartas_jogador_local.append(carta_imagem)
-                
+
             carta_botao = Button(
                 image=cartas_jogador_local[i],
                 command=lambda i=i: self.jogo.validar_carta(i)
@@ -116,7 +112,7 @@ class TelaPrincipal(AtorJogador):
             )
 
             jogador_remoto_direita = []
-            for i in range(len(self.jogo.jogadores_remotos[0].mao)):
+            for i in range(len(self.jogo.get_jogadores_remotos()[2].mao)):
                 jogador_remoto_direita_imagem = PhotoImage(
                     file=self.relative_to_assets("jogador_remoto_direita.png"))
                 jogador_remoto_direita.append(jogador_remoto_direita_imagem)
@@ -126,7 +122,6 @@ class TelaPrincipal(AtorJogador):
                     image=jogador_remoto_direita[i]
                 )
 
-    
         if self.quantidade_de_jogadores >= 3:
             canvas.create_text(
                 293.0,
@@ -136,9 +131,9 @@ class TelaPrincipal(AtorJogador):
                 fill="#000000",
                 font=("Poppins Regular", 24 * -1)
             )
-            
+
             jogador_remoto_esquerda = []
-            for i in range(len(self.jogo.jogadores_remotos[1].mao)):
+            for i in range(len(self.jogo.get_jogadores_remotos()[1].mao)):
                 jogador_remoto_esquerda_imagem = PhotoImage(
                     file=self.relative_to_assets("jogador_remoto_esquerda.png"))
                 jogador_remoto_esquerda.append(jogador_remoto_esquerda_imagem)
@@ -162,7 +157,7 @@ class TelaPrincipal(AtorJogador):
         )
 
         jogador_remoto_cima = []
-        for i in range(len(self.jogo.jogadores_remotos[2].mao)):
+        for i in range(len(self.jogo.get_jogadores_remotos()[0].mao)):
             jogador_remoto_cima_imagem = PhotoImage(
                 file=self.relative_to_assets("jogador_remoto_cima.png"))
             jogador_remoto_cima.append(jogador_remoto_cima_imagem)
