@@ -230,7 +230,7 @@ class Jogo:
         jogada = {}
         if tipo_jogada == 'jogada_inicial':
             jogada['match_status'] = 'next'
-            jogada['tipo_jogada'] = '1'
+            jogada['tipo_jogada'] = 'jogada_inicial'
             jogada['jogador1'] = jsons.dumps(self.jogadores[0].__dict__)
             jogada['jogador2'] = jsons.dumps(self.jogadores[1].__dict__)
             jogada['jogador3'] = jsons.dumps(self.jogadores[2].__dict__)

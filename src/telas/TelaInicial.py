@@ -84,6 +84,7 @@ class TelaInicial(DogPlayerInterface):
         print('receive move chamado')
         self.jogo.receber_jogada(a_move['tipo_jogada'], a_move)
         if a_move['tipo_jogada'] == 'jogada_inicial':
+            print('oi')
             self.abrir_tela_partida()
         else:
             self.atualizar_interface()
@@ -115,7 +116,7 @@ class TelaInicial(DogPlayerInterface):
             dict_jogada = self.jogo.get_dict_enviar_jogada('jogada_inicial')
             self.dog_server_interface.send_move(dict_jogada)
             self.abrir_tela_partida()
-    
+
 
     def abaixar_carta(self, indice_carta):
         if self.jogo.id_jogador_da_vez == self.jogo.id_local:
