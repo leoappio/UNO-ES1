@@ -131,7 +131,7 @@ class TelaInicial(DogPlayerInterface):
     def gritar_uno(self):
         if self.jogo.id_jogador_da_vez == self.jogo.id_local:
             jogador = self.jogo.get_jogador_local()
-            jogador.gritou_uno = True
+            self.jogo.validar_gritou_uno(True, jogador)
     
     
     def comprar_uma_carta(self):
