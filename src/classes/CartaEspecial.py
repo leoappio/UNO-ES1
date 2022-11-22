@@ -1,4 +1,4 @@
-from CartaColorida import CartaColorida
+from classes.CartaColorida import CartaColorida
 
 class CartaEspecial(CartaColorida):
     def __init__(self, cor, tipo):

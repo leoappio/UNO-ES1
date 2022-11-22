@@ -1,4 +1,4 @@
-from Carta import Carta
+from classes.Carta import Carta
 from abc import ABC
 
 class CartaColorida(Carta, ABC):

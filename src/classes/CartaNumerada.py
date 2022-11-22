@@ -1,5 +1,4 @@
-import Carta as Carta
-from CartaColorida import CartaColorida
+from classes.CartaColorida import CartaColorida
 
 class CartaNumerada(CartaColorida):
     def __init__(self, cor, tipo, numero):

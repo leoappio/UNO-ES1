@@ -1,12 +1,12 @@
 import json
-from Baralho import Baralho
-from Jogador import Jogador
-from Mesa import Mesa
-#import jsons
-from CartaCuringa import CartaCuringa
-from CartaEspecial import CartaEspecial
-from CartaNumerada import CartaNumerada
-from CartaColorida import CartaColorida
+from classes.Baralho import Baralho
+from classes.Jogador import Jogador
+from classes.Mesa import Mesa
+import jsons
+from classes.CartaCuringa import CartaCuringa
+from classes.CartaEspecial import CartaEspecial
+from classes.CartaNumerada import CartaNumerada
+from classes.CartaColorida import CartaColorida
 
 class Jogo:
     def __init__(self):
@@ -101,7 +101,6 @@ class Jogo:
 
     def receber_jogada(self, tipo_jogada, dict_jogada):
         if tipo_jogada == 'jogada_inicial':
-            #convertendo jogadores
             for i in range(3):
                 dict_jogador = json.loads(dict_jogada[f'jogador{i+1}'])
                 id = dict_jogador["id"]
@@ -123,70 +122,72 @@ class Jogo:
             self.set_ordem_jogadores()
             self.set_jogador_local()
 
-        #abaixar uma carta sempre encerra o turno
-        elif tipo_jogada == 'abaixar_uma_carta':
-            jogador = self.get_jogador_por_id(dict_jogada['id_jogador'])
-            jogador.baixar_uma_carta(int(dict_jogada['indice_carta_baixada']))
-            carta_baixada = self.converter_dict_cartas_para_objetos([dict_jogada['carta']])[0]
-            self.mesa.carta_atual = carta_baixada
-
-            self.validar_gritou_uno(dict_jogada, jogador)
-
-            if isinstance(carta_baixada, CartaCuringa):
-                if carta_baixada.mais_quatro:
-                    #pega o proximo jogador e adiciona 4 cartas na mao dele
-                    #atualiza o proximo jogador, pulando o que comprou
-                    prox_jogador = self.get_proximo_jogador_por_id(jogador.id)
-                    cartas = self.baralho.comprar_x_cartas(4)
-                    prox_jogador.mao.append(cartas)
-                    self.set_id_jogador_da_vez(jogador.id, pular_dois=True)
-                    self.adicionar_log(f'{prox_jogador.nome} comprou 4 cartas!')
-
-                self.mesa.cor_atual = carta_baixada.cor_escolhida
-                self.adicionar_log(f'{jogador.nome} escolheu a cor {carta_baixada.cor_escolhida}!')
-
-            elif isinstance(carta_baixada, CartaEspecial):
-                if carta_baixada.tipo == 'bloqueio':
-                    #pula 1 jogador
-                    self.set_id_jogador_da_vez(jogador.id, pular_dois=True)                 
-                    prox_jogador = self.get_proximo_jogador_por_id(jogador.id)
-
-                    self.adicionar_log(f'{prox_jogador.nome} foi bloqueado!')
-                elif carta_baixada.tipo == 'mais_dois':
-                    #pega o proximo jogador e adiciona 2 cartas na mao dele
-                    #atualiza o proximo jogador, pulando o que comprou
-                    prox_jogador = self.get_proximo_jogador_por_id(jogador.id)
-                    cartas = self.baralho.comprar_x_cartas(2)
-                    prox_jogador.mao.append(cartas)
-                    self.set_id_jogador_da_vez(jogador.id, pular_dois=True)
-
-                    self.adicionar_log(f'{prox_jogador.nome} comprou 2 cartas!')
-                elif carta_baixada.tipo == 'inverte':
-                    #inverte ordem da lista e seta o proximo baseado no id
-                    self.inverter_ordem_jogadores()
-                    self.set_id_jogador_da_vez(jogador.id)
-                    self.adicionar_log(f'{jogador.nome} inverteu o sentido do jogo!')
-            else:
-                self.mesa.set_cor_atual()
+        elif tipo_jogada == 'baixar_uma_carta':
+            self.baixar_uma_carta(dict_jogada['id_jogador'], dict_jogada['indice_carta_baixada'], dict_jogada['gritou_uno'])
 
         elif tipo_jogada == 'comprar_uma_carta':
-            jogador = self.get_jogador_por_id(dict_jogada['id_jogador'])
-            jogador.gritou_uno = False
-            self.validar_gritou_uno(dict_jogada, jogador)
-            carta_comprada = self.baralho.pegar_carta()
-            jogador.mao.append(carta_comprada)
-            if bool(dict_jogada['finalizou_turno']):
-                self.set_id_jogador_da_vez(jogador.id)
+            self.comprar_uma_carta(dict_jogada['id_jogador'], dict_jogada['gritou_uno'], dict_jogada['finalizou_turno'])
         
 
-    def validar_gritou_uno(self, dict_jogada, jogador):
-        if bool(dict_jogada['gritou_uno']):
+    def validar_gritou_uno(self, gritou_uno, jogador):
+        if bool(gritou_uno):
             jogador.gritou_uno = True
             for jog in self.jogadores:
                 if len(jog.mao) == 1 and not jog.gritou_uno:
                     carta_comprada = self.baralho.pegar_carta()
                     jog.mao.append(carta_comprada)
                     self.adicionar_log(f'{jog.nome} foi denunciado e comprou uma carta!')
+
+
+    def comprar_uma_carta(self, id_jogador, gritou_uno, finalizou_turno):
+        jogador = self.get_jogador_por_id(id_jogador)
+        jogador.gritou_uno = False
+        self.validar_gritou_uno(gritou_uno, jogador)
+        carta_comprada = self.baralho.pegar_carta()
+        jogador.mao.append(carta_comprada)
+        if bool(finalizou_turno):
+            self.set_id_jogador_da_vez(jogador.id)
+
+
+    def baixar_uma_carta(self, id_jogador, indice, gritou_uno):
+        jogador = self.get_jogador_por_id(id_jogador)
+        jogador.baixar_uma_carta(int(indice))
+        carta_baixada = jogador.mao[indice]
+        self.mesa.carta_atual = carta_baixada
+
+        self.validar_gritou_uno(gritou_uno, jogador)
+
+        if isinstance(carta_baixada, CartaCuringa):
+            if carta_baixada.mais_quatro:
+                prox_jogador = self.get_proximo_jogador_por_id(jogador.id)
+                cartas = self.baralho.comprar_x_cartas(4)
+                prox_jogador.mao.append(cartas)
+                self.set_id_jogador_da_vez(jogador.id, pular_dois=True)
+                self.adicionar_log(f'{prox_jogador.nome} comprou 4 cartas!')
+
+            self.mesa.cor_atual = carta_baixada.cor_escolhida
+            self.adicionar_log(f'{jogador.nome} escolheu a cor {carta_baixada.cor_escolhida}!')
+
+        elif isinstance(carta_baixada, CartaEspecial):
+            if carta_baixada.tipo == 'bloqueio':
+                self.set_id_jogador_da_vez(jogador.id, pular_dois=True)                 
+                prox_jogador = self.get_proximo_jogador_por_id(jogador.id)
+                self.adicionar_log(f'{prox_jogador.nome} foi bloqueado!')
+
+            elif carta_baixada.tipo == 'mais_dois':
+                prox_jogador = self.get_proximo_jogador_por_id(jogador.id)
+                cartas = self.baralho.comprar_x_cartas(2)
+                prox_jogador.mao.append(cartas)
+                self.set_id_jogador_da_vez(jogador.id, pular_dois=True)
+                self.adicionar_log(f'{prox_jogador.nome} comprou 2 cartas!')
+
+            elif carta_baixada.tipo == 'inverte':
+                #inverte ordem da lista e seta o proximo baseado no id
+                self.inverter_ordem_jogadores()
+                self.set_id_jogador_da_vez(jogador.id)
+                self.adicionar_log(f'{jogador.nome} inverteu o sentido do jogo!')
+        else:
+            self.mesa.set_cor_atual()
 
 
     def inverter_ordem_jogadores(self):
@@ -230,18 +231,19 @@ class Jogo:
         if tipo_jogada == 'jogada_inicial':
             jogada['match_status'] = 'next'
             jogada['tipo_jogada'] = '1'
-            #jogada['jogador1'] = jsons.dumps(self.jogadores[0].__dict__)
-            #jogada['jogador2'] = jsons.dumps(self.jogadores[1].__dict__)
-            #jogada['jogador3'] = jsons.dumps(self.jogadores[2].__dict__)
-            #jogada['mesa'] = jsons.dumps(self.mesa.__dict__)
+            jogada['jogador1'] = jsons.dumps(self.jogadores[0].__dict__)
+            jogada['jogador2'] = jsons.dumps(self.jogadores[1].__dict__)
+            jogada['jogador3'] = jsons.dumps(self.jogadores[2].__dict__)
+            jogada['mesa'] = jsons.dumps(self.mesa.__dict__)
             jogada['id_jogador_da_vez'] = self.id_jogador_da_vez
-        elif tipo_jogada == 'abaixar_uma_carta':
+        elif tipo_jogada == 'baixar_uma_carta':
+            jogada['match_status'] = 'next'
             jogada['id_jogador'] = jogador.id
-            jogada['carta'] = self.mesa.carta_atual
             jogada['indice_carta_baixada'] = indice_carta_baixada
             jogada['gritou_uno'] = jogador.gritou_uno
             jogada['venceu_partida'] = len(jogador.mao) == 0
         elif tipo_jogada == 'comprar_uma_carta':
+            jogada['match_status'] = 'next'
             jogada['id_jogador'] = jogador.id
             jogada['gritou_uno'] = jogador.gritou_uno
             jogada['finalizou_turno'] = finalizou_turno
@@ -277,7 +279,7 @@ class Jogo:
         carta = self.get_jogador_local().mao[indice]
 
         eh_colorida = isinstance(carta, CartaColorida)
-        if not eh_colorida: 
+        if not eh_colorida:  
             return True
         else:
             cor_carta = carta.cor
@@ -286,66 +288,17 @@ class Jogo:
 
             cor_atual = ""
             if atual_eh_colorida:
-                cor_atual = self.mesa.carta_atual.cor
-            else:
-                cor_atual = self.mesa.carta_atual.cor_escolhida
-            
-            if cor_atual == cor_carta:
-                return True
-            else:
-                if isinstance(carta_atual, CartaCuringa):
-                    return False
-                else:
-                    tipo_carta = carta.tipo
-                    tipo_atual = carta_atual.tipo
-                    if tipo_atual == tipo_carta:
-                        return True
-                    else:
-                        numero_atual = carta_atual.numero
-                        numero_carta = carta.numero
-                        if numero_atual == numero_carta:
-                            return True
-                        else:
-                            return False
-    
-    def validar_carta_teste(self, carta_jogada, carta_atual):
-        carta = carta_jogada
-
-        eh_colorida = isinstance(carta, CartaColorida)
-        if not eh_colorida:  
-            return True
-        else:
-            cor_carta = carta.cor
-            atual_eh_colorida = isinstance(carta_atual, CartaColorida)
-
-            cor_atual = ""
-            if atual_eh_colorida:
                 cor_atual = carta_atual.cor
             else:
-                cor_atual = carta_atual.cor_escolhida
-            
+                cor_atual = carta_atual.cor_escolhida           
             if cor_atual == cor_carta:
                 return True
-            else:
-                if isinstance(carta_atual, CartaCuringa):
-                    return False
-                numero_atual = carta_atual.numero
-                numero_carta = carta.numero
-                if numero_atual == numero_carta:
-                    return True
-                else:
-                    tipo_carta = carta.tipo
-                    tipo_atual = carta_atual.tipo
-                    if tipo_atual == tipo_carta:
+
+            if not isinstance(carta_atual, CartaCuringa):
+                if carta_atual.tipo == "numerica" and carta.tipo == "numerica":
+                    if carta_atual.numero == carta.numero:
+                        return True
+                elif carta_atual.tipo == carta.tipo:
                         return True
         
         return False
-
-
-carta_atual = CartaNumerada("vermelho","numerica", 7)
-carta_jogada = CartaNumerada("verde", "numerica", 5)
-
-jogo = Jogo()
-
-print(jogo.validar_carta_teste(carta_jogada, carta_atual))
-    
