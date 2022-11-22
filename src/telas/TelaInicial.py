@@ -112,7 +112,7 @@ class TelaInicial(DogPlayerInterface):
             id_jogador_local = start_status.get_local_id()
             self.jogo = Jogo()
             self.jogo.iniciar_jogo(jogadores, id_jogador_local)
-            dict_jogada = self.jogo.get_dict_enviar_jogada('1')
+            dict_jogada = self.jogo.get_dict_enviar_jogada('jogada_inicial')
             self.dog_server_interface.send_move(dict_jogada)
             self.abrir_tela_partida()
     
