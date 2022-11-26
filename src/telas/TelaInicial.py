@@ -7,7 +7,6 @@ from classes.Jogo import Jogo
 OUTPUT_PATH = Path(__file__).parent
 ASSETS_PATH = OUTPUT_PATH / Path("./arquivos")
 
-
 class TelaInicial(DogPlayerInterface):
     def __init__(self) -> None:
         super().__init__()
@@ -18,6 +17,14 @@ class TelaInicial(DogPlayerInterface):
         self.window.resizable(False, False)
         self.canvas = None
         self.jogo = None
+        self.images_mao = {}
+        self.botoes_mao = {}
+        self.window_mao = {}
+        self.images_mao_cima = {}
+        self.window_mao_cima = {}
+        self.images_mao_direita = {}
+        self.window_mao_direita = {}
+
 
     @staticmethod
     def relative_to_assets(path: str) -> Path:
@@ -45,43 +52,218 @@ class TelaInicial(DogPlayerInterface):
             image=backgroud_image
         )
 
+        # Tela inicial
         imagem_logo = PhotoImage(
             file=self.relative_to_assets("image_2.png"))
 
-        logo = self.canvas.create_image(
+        # Criação do logo
+        self.logo = self.logo = self.canvas.create_image(
             800.0,
             361.0,
             image=imagem_logo
         )
+        
+        self.canvas.itemconfigure(self.logo, state='normal')
 
+        # Criação do Botão Jogar
         button_image_1 = PhotoImage(
-            file=TelaInicial.relative_to_assets("button_1.png"))
+            master=self.canvas,
+            file=self.relative_to_assets("button_1.png"))
 
         button_1 = Button(
+            master=self.canvas,
             image=button_image_1,
-            borderwidth=0,
-            highlightthickness=0,
             command=lambda: self.iniciar_partida(),
-            relief="flat"
         )
-        button_1.place(
-            x=616.0,
-            y=651.0,
-            width=369.0,
-            height=112.0
-        )
+        self.botaoJogar = self.canvas.create_window(616.0, 651.0, width=359.0, height=112.0, anchor='nw', window=button_1)
+        # self.button_1.place(
+        #     x=616.0,
+        #     y=651.0,
+        #     width=369.0,
+        #     height=112.0
+        # )
 
+        #self.canvas.itemconfigure(botaoJogar, 'normal')
+        
+        # Criação do simpledialog que pergunda o nome
         player_name = simpledialog.askstring(
             title="Player Identification", prompt="Qual é o seu nome?")
         self.dog_server_interface = DogActor()
         message = self.dog_server_interface.initialize(player_name, self)
         messagebox.showinfo(message=message)
+        
+        # Tela principal
+        
+        # Criação do baralho
+        uno_back_image = PhotoImage(
+            master=self.canvas,
+            file=self.relative_to_assets("uno_back.png"))
 
+        botao_baralho_cartas = Button(
+            master=self.canvas,
+            image=uno_back_image,
+            command=lambda: self.comprar_uma_carta(),
+        )
+        
+        self.baralho = self.canvas.create_window(659.0, 354.0, width=135.0, height=192.0, anchor='nw', state='hidden', window=botao_baralho_cartas)
+
+        # Criação da carta atual
+        table_image = PhotoImage(
+            master=self.window,
+            file=self.relative_to_assets(f'./baralho/0_amarelo.png'))
+
+        self.table = self.canvas.create_image(
+            873.0,
+            450.0,
+            image=table_image
+        )
+
+        self.canvas.itemconfigure(self.table, state='hidden')
+        
+        # POSICIONANDO JOGADOR LOCAL
+        for i in range(7):
+            self.images_mao[i] = PhotoImage(
+                master=self.window,
+                file=self.relative_to_assets(f'./baralho/0_amarelo.png'))
+
+            self.botoes_mao[i] = Button(
+                    master=self.window,
+                    image=self.images_mao[i],
+                    command=lambda i=i: self.abaixar_carta(i)
+                )
+            
+            self.window_mao[i] = self.canvas.create_window((593.0 + i*52), 640.0, width=103.0, height=147.0, anchor='nw', state='hidden', window=self.botoes_mao[i])
+            
+        for i in range(7, 14):
+            self.images_mao[i] = PhotoImage(
+                master=self.window,
+                file=self.relative_to_assets(f'./baralho/0_amarelo.png'))
+
+            self.botoes_mao[i] = Button(
+                    master=self.window,
+                    image=self.images_mao[i],
+                    command=lambda i=i: self.abaixar_carta(i)
+                )
+            
+            self.window_mao[i] = self.canvas.create_window((593.0 + (i-7)*52), 740.0, width=103.0, height=147.0, anchor='nw', state='hidden', window=self.botoes_mao[i])
+        
+        self.label_jogador_local = self.canvas.create_text(
+            756.0,
+            600.0,
+            anchor="nw",
+            text= "None",
+            fill="#000000",
+            font=("Poppins Regular", 24 * -1)
+        )
+        
+        self.canvas.itemconfigure(self.label_jogador_local, state='hidden')
+
+        #POSICIONANDO QUEM JOGA DEPOIS DE MIM (EM CIMA)
+        for i in range(7):
+            self.images_mao_cima[i] = PhotoImage(
+                master=self.window,
+                file=self.relative_to_assets(f'./jogador_remoto_cima.png'))
+            
+            self.window_mao_cima[i] = self.canvas.create_image(
+                (643.0+i*52),
+                180.0,
+                image=self.images_mao_cima[i]
+            )
+            
+            self.canvas.itemconfigure(self.window_mao_cima[i], state='hidden')
+            
+        for i in range(7, 14):
+            self.images_mao_cima[i] = PhotoImage(
+                master=self.window,
+                file=self.relative_to_assets(f'./jogador_remoto_cima.png'))
+
+            self.window_mao_cima[i] = self.canvas.create_image(
+                (643.0+(i-7)*52),
+                90.0,
+                image=self.images_mao_cima[i]
+            )
+            
+            self.canvas.itemconfigure(self.window_mao_cima[i], state='hidden')
+
+        self.label_jogador_cima = self.canvas.create_text(
+            755.0,
+            260.0,
+            anchor="nw",
+            text="None",
+            fill="#000000",
+            font=("Poppins Regular", 24 * -1)
+        )
+        
+        self.canvas.itemconfigure(self.label_jogador_cima, state='hidden')
+        
+        # #POSICIONANDO QUEM JOGA ANTES DE MIM(DIREITA)
+        
+        for i in range(7):
+            self.images_mao_direita[i] = PhotoImage(
+                master=self.window,
+                file=self.relative_to_assets(f'./jogador_remoto_direita.png'))
+            
+            self.window_mao_direita[i] = self.canvas.create_image(
+                1287.0,
+                (294.0+i*52),
+                image=self.images_mao_direita[i]
+            )
+            
+            self.canvas.itemconfigure(self.window_mao_direita[i], state='hidden')
+            
+        for i in range(7, 14):
+            self.images_mao_direita[i] = PhotoImage(
+                master=self.window,
+                file=self.relative_to_assets(f'./jogador_remoto_direita.png'))
+
+            self.window_mao_direita[i] = self.canvas.create_image(
+                1387.0,
+                (294.0+(i-7)*52),
+                image=self.images_mao_direita[i]
+            )
+            
+            self.canvas.itemconfigure(self.window_mao_direita[i], state='hidden')
+
+        self.label_jogador_direita = self.canvas.create_text(
+            1100.0,
+            432.0,
+            anchor="nw",
+            text="None",
+            fill="#000000",
+            font=("Poppins Regular", 24 * -1)
+        )
+        
+        self.canvas.itemconfigure(self.label_jogador_direita, state='hidden')
+        
+        botao_uno_image = PhotoImage(
+                master=self.window,
+                file=self.relative_to_assets("botao_uno.png"))
+
+        botao_uno = Button(
+            master=self.window,
+            image=botao_uno_image,
+            command=lambda: self.gritar_uno(),
+        )
+
+        self.botao_uno = self.canvas.create_window(1103.0, 732.0, width=160.0, height=80.0, anchor='nw', state='hidden', window=botao_uno)
+
+        self.infos_turno = self.canvas.create_text(
+            115.0,
+            82.0,
+            anchor="nw",
+            text="None",
+            fill="#000000",
+            font=("Poppins Regular", 24 * -1)
+        )
+        
+        self.canvas.itemconfigure(self.infos_turno, state='hidden')
+        
         self.window.mainloop()
 
 
     def receive_move(self, a_move):
         print('receive move chamado')
+        print(a_move['tipo_jogada'])
         self.jogo.receber_jogada(a_move['tipo_jogada'], a_move)
         if a_move['tipo_jogada'] == 'jogada_inicial':
             print('oi')
@@ -91,7 +273,7 @@ class TelaInicial(DogPlayerInterface):
     
 
     def atualizar_interface(self):
-        ...
+        print('atualizar interface')
 
 
     def receive_start(self, start_status):
@@ -124,7 +306,7 @@ class TelaInicial(DogPlayerInterface):
                 jogador = self.jogo.get_jogador_local()
                 self.jogo.baixar_uma_carta(self.jogo.id_local, indice_carta, jogador.gritou_uno)
                 self.atualizar_interface()
-                dict_jogada = self.jogo.get_dict_enviar_jogada("baixar_uma_carta", jogador)
+                dict_jogada = self.jogo.get_dict_enviar_jogada('baixar_uma_carta', jogador)
                 self.dog_server_interface.send_move(dict_jogada)
     
 
@@ -147,161 +329,44 @@ class TelaInicial(DogPlayerInterface):
 
 
     def abrir_tela_partida(self):
-        nova_tela = Toplevel(self.window)
-        local_id = self.jogo.id_local
-        self.canvas_jogo = Canvas(
-            nova_tela,
-            bg="#FFFFFF",
-            height=900,
-            width=1600,
-            bd=0,
-            highlightthickness=0,
-            relief="ridge"
-        )
-
-        self.canvas_jogo.place(x=0, y=0)
-
-        background_image = PhotoImage(
-            master=nova_tela,
-            file=self.relative_to_assets("background.png"))
-
-        self.canvas_jogo.create_image(
-            800.0,
-            450.0,
-            image=background_image
-        )
-
-        uno_back_image = PhotoImage(
-            master=nova_tela,
-            file=self.relative_to_assets("uno_back.png"))
-
-        botao_baralho_cartas = Button(
-            master=nova_tela,
-            image=uno_back_image,
-            command=lambda: print("botão baralho clicado"),
-        )
-
-        botao_baralho_cartas.place(
-            x=659.0,
-            y=354.0,
-            width=135.0,
-            height=192.0
-        )
-
-        table_image = PhotoImage(
-            master=nova_tela,
+        print('cheguei aqui')
+        
+        self.carta_atual = PhotoImage(
+            master=self.window,
             file=self.relative_to_assets(f'./baralho/{self.jogo.mesa.carta_atual.codigo}.png'))
-
-        self.canvas_jogo.create_image(
-            873.0,
-            450.0,
-            image=table_image
-        )
-
-        # POSICIONANDO JOGADOR LOCAL
-        cartas_jogador_local = []
-        print('tamanho mao local', len(self.jogo.jogador_local.mao))
-        for i, carta in enumerate(self.jogo.jogador_local.mao):
-            carta_imagem = PhotoImage(
-                master=nova_tela,
-                file=self.relative_to_assets(f'./baralho/{carta.codigo}.png'))
-
-            cartas_jogador_local.append(carta_imagem)
-
-            carta_botao = Button(
-                master=nova_tela,
-                image=cartas_jogador_local[i],
-                command=lambda i=i: self.jogo.validar_carta(i)
-            )
-
-            carta_botao.place(
-                x=(593.0 + i*52),
-                y=698.0,
-                width=103.0,
-                height=147.0
-            )
-
-        self.canvas_jogo.create_text(
-            756.0,
-            640.0,
-            anchor="nw",
-            text= self.jogo.jogador_local.nome,
-            fill="#000000",
-            font=("Poppins Regular", 24 * -1)
-        )
-
-        #POSICIONANDO QUEM JOGA DEPOIS DE MIM (EM CIMA)
-        jogador_remoto_cima = []
-        jogador_cima = self.jogo.get_proximo_jogador_por_id(local_id)
-        print('tamanho mao cima', len(jogador_cima.mao))
+        
+        self.canvas.itemconfigure(self.logo, state='hidden')
+        self.canvas.itemconfigure(self.botaoJogar, state='hidden')
+        
+        self.canvas.itemconfigure(self.table, image=self.carta_atual, state='normal')
+        self.canvas.itemconfigure(self.baralho, state='normal')
+        
+        for i in range(len(self.jogo.jogador_local.mao)):
+            carta = PhotoImage(
+                master=self.window,
+                file=self.relative_to_assets(f'./baralho/{self.jogo.jogador_local.mao[i].codigo}.png'))
+            self.images_mao[i] = carta
+        
+            self.botoes_mao[i].config(image=self.images_mao[i])
+            self.canvas.itemconfigure(self.window_mao[i], state='normal')
+            
+        self.canvas.itemconfig(self.label_jogador_local, text=self.jogo.jogador_local.nome, state='normal')
+        
+        jogador_cima = self.jogo.get_proximo_jogador_por_id(self.jogo.id_local)
+        
         for i in range(len(jogador_cima.mao)):
-            jogador_remoto_cima_imagem = PhotoImage(
-                master=nova_tela,
-                file=self.relative_to_assets("jogador_remoto_cima.png"))
-            jogador_remoto_cima.append(jogador_remoto_cima_imagem)
-            self.canvas_jogo.create_image(
-                (643.0+i*52),
-                129.0,
-                image=jogador_remoto_cima[i]
-            )
-
-        self.canvas_jogo.create_text(
-            755.0,
-            217.0,
-            anchor="nw",
-            text=jogador_cima.nome,
-            fill="#000000",
-            font=("Poppins Regular", 24 * -1)
-        )
-
-        #POSICIONANDO QUEM JOGA ANTES DE MIM(DIREITA)
+            self.canvas.itemconfigure(self.window_mao_cima[i], state='normal')
+                        
+        self.canvas.itemconfigure(self.label_jogador_cima, text=jogador_cima.nome, state='normal')
+        
         jogador_direita = self.jogo.get_proximo_jogador_por_id(jogador_cima.id)
-        self.canvas_jogo.create_text(
-            1109.0,
-            432.0,
-            anchor="nw",
-            text=jogador_direita.nome,
-            fill="#000000",
-            font=("Poppins Regular", 24 * -1)
-        )
-
-        jogador_remoto_direita = []
+        
         for i in range(len(jogador_direita.mao)):
-            jogador_remoto_direita_imagem = PhotoImage(
-                master=nova_tela,
-                file=self.relative_to_assets("jogador_remoto_direita.png"))
-            jogador_remoto_direita.append(jogador_remoto_direita_imagem)
-            self.canvas_jogo.create_image(
-                1335.0,
-                (294.0+i*52),
-                image=jogador_remoto_direita[i]
-            )
-
-        botao_uno_image = PhotoImage(
-            master=nova_tela,
-            file=self.relative_to_assets("botao_uno.png"))
-
-        botao_uno = Button(
-            master=nova_tela,
-            image=botao_uno_image,
-            command=lambda: print("Fulano gritou uno"),
-        )
-        botao_uno.place(
-            x=1103.0,
-            y=732.0,
-            width=160.0,
-            height=80.0
-        )
-
+            self.canvas.itemconfigure(self.window_mao_direita[i], state='normal')
+                        
+        self.canvas.itemconfigure(self.label_jogador_direita, text=jogador_direita.nome, state='normal')
+        
+        self.canvas.itemconfigure(self.botao_uno, state='normal')
+        
         jogador_da_vez = self.jogo.get_jogador_por_id(self.jogo.id_jogador_da_vez)
-
-        self.canvas_jogo.create_text(
-            115.0,
-            82.0,
-            anchor="nw",
-            text=f"Vez de {jogador_da_vez.nome}\nCor da rodada: vermelho",
-            fill="#000000",
-            font=("Poppins Regular", 24 * -1)
-        )
-
-        #nova_tela.mainloop()
+        self.canvas.itemconfigure(self.infos_turno, text=f"Vez de {jogador_da_vez.nome}\nCor da rodada: {self.jogo.mesa.carta_atual.cor}", state='normal')
