@@ -1,6 +1,7 @@
 from pathlib import Path
 from tkinter import Tk, Canvas, PhotoImage, Button, Toplevel, messagebox, simpledialog
 from dog.dog_interface import DogPlayerInterface
+from classes.CartaCuringa import CartaCuringa
 from dog.dog_actor import DogActor
 from classes.Jogo import Jogo
 # from PIL import Image, ImageTk
@@ -24,7 +25,6 @@ class TelaInicial(DogPlayerInterface):
         self.window_mao_cima = {}
         self.images_mao_direita = {}
         self.window_mao_direita = {}
-
 
     @staticmethod
     def relative_to_assets(path: str) -> Path:
@@ -274,6 +274,7 @@ class TelaInicial(DogPlayerInterface):
 
     def atualizar_interface(self):
         print('atualizar interface')
+        self.abrir_tela_partida()
 
 
     def receive_start(self, start_status):
@@ -301,13 +302,18 @@ class TelaInicial(DogPlayerInterface):
 
 
     def abaixar_carta(self, indice_carta):
+        print(f'o indice eh {indice_carta}')
         if self.jogo.id_jogador_da_vez == self.jogo.id_local:
             if self.jogo.validar_carta(indice_carta):
                 jogador = self.jogo.get_jogador_local()
-                self.jogo.baixar_uma_carta(self.jogo.id_local, indice_carta, jogador.gritou_uno)
-                self.atualizar_interface()
+                if isinstance(jogador.mao[indice_carta], CartaCuringa):
+                    cor = self.escolher_uma_cor()
+                    self.jogo.baixar_uma_carta(self.jogo.id_local, indice_carta, jogador.gritou_uno, cor)
+                else:   
+                    self.jogo.baixar_uma_carta(self.jogo.id_local, indice_carta, jogador.gritou_uno)
                 dict_jogada = self.jogo.get_dict_enviar_jogada('baixar_uma_carta', jogador)
                 self.dog_server_interface.send_move(dict_jogada)
+                self.atualizar_interface()
     
 
     def gritar_uno(self):
@@ -317,9 +323,9 @@ class TelaInicial(DogPlayerInterface):
     
     
     def comprar_uma_carta(self):
+        jogador = self.jogo.get_jogador_local()
         if self.jogo.id_jogador_da_vez == self.jogo.id_local:
             if len(jogador.mao) < 20:
-                jogador = self.jogo.get_jogador_local()
                 finalizou_turno = self.jogo.tem_carta_valida()
                 self.jogo.comprar_uma_carta(self.jogo.id_local, jogador.gritou_uno, finalizou_turno)
                 self.atualizar_interface()
@@ -327,6 +333,20 @@ class TelaInicial(DogPlayerInterface):
                 dict_jogada = self.jogo.get_dict_enviar_jogada('comprar_uma_carta', jogador, finalizou_turno=tem_carta_valida)
                 self.dog_server_interface.send_move(dict_jogada)
 
+    def escolher_uma_cor(self):
+        cor_escolhida = simpledialog.askinteger(
+        title="Carta curinga", prompt="Digite 1 para vermelho, 2 para amarelo, 3 para verde e 4 para azul")
+        messagebox.showinfo(message="ok")
+        if cor_escolhida == 1:
+            self.carta_atual.cor_escolhida = 'vermelho'
+        elif cor_escolhida == 2:
+            self.carta_atual.cor_escolhida = 'amarelo'
+        elif cor_escolhida == 3:
+            self.carta_atual.cor_escolhida = 'verde'
+        elif cor_escolhida == 4:
+            self.carta_atual.cor_escolhida = 'azul'
+        else:
+            self.escolher_uma_cor()
 
     def abrir_tela_partida(self):
         print('cheguei aqui')
@@ -369,4 +389,9 @@ class TelaInicial(DogPlayerInterface):
         self.canvas.itemconfigure(self.botao_uno, state='normal')
         
         jogador_da_vez = self.jogo.get_jogador_por_id(self.jogo.id_jogador_da_vez)
-        self.canvas.itemconfigure(self.infos_turno, text=f"Vez de {jogador_da_vez.nome}\nCor da rodada: {self.jogo.mesa.carta_atual.cor}", state='normal')
+        
+        if isinstance(self.jogo.mesa.carta_atual, CartaCuringa):
+            cor = self.jogo.mesa.carta_atual.cor_escolhida
+        else:
+            cor = self.jogo.mesa.carta_atual.cor
+        self.canvas.itemconfigure(self.infos_turno, text=f"Vez de {jogador_da_vez.nome}\nCor da rodada: {cor}", state='normal')
