@@ -89,6 +89,7 @@ class Jogo:
         self.mesa = Mesa(self.baralho)
         self.baralho.criar_baralho()
         self.id_jogador_da_vez = self.jogadores[0].id
+        self.partida_em_andamento = True
 
         for jogador in self.jogadores:
             self.mesa.baralho.embaralhar()

@@ -11,6 +11,7 @@ ASSETS_PATH = OUTPUT_PATH / Path("./arquivos")
 class TelaInicial(DogPlayerInterface):
     def __init__(self) -> None:
         super().__init__()
+        # Configurações da janela
         self.window = Tk()
         self.window.title("UNO")
         self.window.geometry("1600x900")
@@ -18,13 +19,14 @@ class TelaInicial(DogPlayerInterface):
         self.window.resizable(False, False)
         self.canvas = None
         self.jogo = None
-        self.images_mao = {}
-        self.botoes_mao = {}
-        self.window_mao = {}
-        self.images_mao_cima = {}
-        self.window_mao_cima = {}
-        self.images_mao_direita = {}
-        self.window_mao_direita = {}
+        # Auxiliares para o carregamento das cartas dos jogadores
+        self.cartas_local_imgs = {}
+        self.cartas_local_btns = {}
+        self.cartas_local_widgets = {}
+        self.cartas_cima_imgs = {}
+        self.cartas_cima_widgets = {}
+        self.cartas_direita_imgs = {}
+        self.cartas_direita_widgets = {}
 
     @staticmethod
     def relative_to_assets(path: str) -> Path:
@@ -40,112 +42,80 @@ class TelaInicial(DogPlayerInterface):
             highlightthickness=0,
             relief="ridge"
         )
-
         self.canvas.place(x=0, y=0)
-
+        
         backgroud_image = PhotoImage(
-            file=TelaInicial.relative_to_assets("image_1.png"))
-
-        canvas_bg_image = self.canvas.create_image(
+            file=TelaInicial.relative_to_assets("background.png"))
+        background = self.canvas.create_image(
             800.0,
             450.0,
             image=backgroud_image
         )
 
-        # Tela inicial
+        ##### Instancia os widgets da tela inicial
+        # Logotipo
         imagem_logo = PhotoImage(
-            file=self.relative_to_assets("image_2.png"))
-
-        # Criação do logo
+            file=self.relative_to_assets("logo.png"))
         self.logo = self.logo = self.canvas.create_image(
             800.0,
             361.0,
-            image=imagem_logo
+            image=imagem_logo,
         )
-        
-        self.canvas.itemconfigure(self.logo, state='normal')
 
-        # Criação do Botão Jogar
-        button_image_1 = PhotoImage(
-            master=self.canvas,
-            file=self.relative_to_assets("button_1.png"))
-
-        button_1 = Button(
-            master=self.canvas,
-            image=button_image_1,
+        # Botão jogar
+        botao_jogar_image = PhotoImage(
+            file=self.relative_to_assets("botao_jogar.png"))
+        botao_jogar = Button(
+            image=botao_jogar_image,
             command=lambda: self.iniciar_partida(),
         )
-        self.botaoJogar = self.canvas.create_window(616.0, 651.0, width=359.0, height=112.0, anchor='nw', window=button_1)
-        # self.button_1.place(
-        #     x=616.0,
-        #     y=651.0,
-        #     width=369.0,
-        #     height=112.0
-        # )
-
-        #self.canvas.itemconfigure(botaoJogar, 'normal')
-        
-        # Criação do simpledialog que pergunda o nome
+        self.botaoJogar = self.canvas.create_window(616.0, 651.0, width=359.0, height=112.0, anchor='nw', window=botao_jogar)
+    
+        # Criação do modal para coletar o nome do jogador
         player_name = simpledialog.askstring(
             title="Player Identification", prompt="Qual é o seu nome?")
         self.dog_server_interface = DogActor()
         message = self.dog_server_interface.initialize(player_name, self)
         messagebox.showinfo(message=message)
         
-        # Tela principal
-        
-        # Criação do baralho
+        ##### Instancia os widgets da tela de partida
+        # Monte de compra/baralho
         uno_back_image = PhotoImage(
-            master=self.canvas,
             file=self.relative_to_assets("uno_back.png"))
-
         botao_baralho_cartas = Button(
-            master=self.canvas,
             image=uno_back_image,
             command=lambda: self.comprar_uma_carta(),
         )
-        
         self.baralho = self.canvas.create_window(659.0, 354.0, width=135.0, height=192.0, anchor='nw', state='hidden', window=botao_baralho_cartas)
 
-        # Criação da carta atual
+        # Carta atual/mesa
         table_image = PhotoImage(
-            master=self.window,
             file=self.relative_to_assets(f'./baralho/0_amarelo.png'))
-
         self.table = self.canvas.create_image(
             873.0,
             450.0,
-            image=table_image
+            image=table_image,
+            state='hidden'
         )
-
-        self.canvas.itemconfigure(self.table, state='hidden')
         
-        # POSICIONANDO JOGADOR LOCAL
+        # Nome e mão do jogador local
         for i in range(7):
-            self.images_mao[i] = PhotoImage(
-                master=self.window,
+            self.cartas_local_imgs[i] = PhotoImage(
                 file=self.relative_to_assets(f'./baralho/0_amarelo.png'))
-
-            self.botoes_mao[i] = Button(
-                    master=self.window,
-                    image=self.images_mao[i],
+            self.cartas_local_btns[i] = Button(
+                    image=self.cartas_local_imgs[i],
                     command=lambda i=i: self.abaixar_carta(i)
                 )
-            
-            self.window_mao[i] = self.canvas.create_window((593.0 + i*52), 640.0, width=103.0, height=147.0, anchor='nw', state='hidden', window=self.botoes_mao[i])
+            self.cartas_local_widgets[i] = self.canvas.create_window((593.0 + i*52), 640.0, width=103.0, height=147.0, anchor='nw', state='hidden', window=self.cartas_local_btns[i])
             
         for i in range(7, 14):
-            self.images_mao[i] = PhotoImage(
-                master=self.window,
+            self.cartas_local_imgs[i] = PhotoImage(
                 file=self.relative_to_assets(f'./baralho/0_amarelo.png'))
-
-            self.botoes_mao[i] = Button(
-                    master=self.window,
-                    image=self.images_mao[i],
+            self.cartas_local_btns[i] = Button(
+                    image=self.cartas_local_imgs[i],
                     command=lambda i=i: self.abaixar_carta(i)
                 )
-            
-            self.window_mao[i] = self.canvas.create_window((593.0 + (i-7)*52), 740.0, width=103.0, height=147.0, anchor='nw', state='hidden', window=self.botoes_mao[i])
+            self.cartas_local_widgets[i] = self.canvas.create_window((593.0 + (i-7)*52), 740.0, width=103.0, height=147.0, anchor='nw', state='hidden', window=self.cartas_local_btns[i])
         
         self.label_jogador_local = self.canvas.create_text(
             756.0,
@@ -153,76 +123,61 @@ class TelaInicial(DogPlayerInterface):
             anchor="nw",
             text= "None",
             fill="#000000",
-            font=("Poppins Regular", 24 * -1)
+            font=("Poppins Regular", 24 * -1),
+            state='hidden'
         )
-        
-        self.canvas.itemconfigure(self.label_jogador_local, state='hidden')
 
-        #POSICIONANDO QUEM JOGA DEPOIS DE MIM (EM CIMA)
+        # Nome e cartas do jogador de cima
         for i in range(7):
-            self.images_mao_cima[i] = PhotoImage(
-                master=self.window,
+            self.cartas_cima_imgs[i] = PhotoImage(
                 file=self.relative_to_assets(f'./jogador_remoto_cima.png'))
-            
-            self.window_mao_cima[i] = self.canvas.create_image(
+            self.cartas_cima_widgets[i] = self.canvas.create_image(
                 (643.0+i*52),
-                180.0,
-                image=self.images_mao_cima[i]
+                185.0,
+                image=self.cartas_cima_imgs[i],
+                state='hidden'
             )
-            
-            self.canvas.itemconfigure(self.window_mao_cima[i], state='hidden')
-            
+   
         for i in range(7, 14):
-            self.images_mao_cima[i] = PhotoImage(
-                master=self.window,
+            self.cartas_cima_imgs[i] = PhotoImage(
                 file=self.relative_to_assets(f'./jogador_remoto_cima.png'))
-
-            self.window_mao_cima[i] = self.canvas.create_image(
+            self.cartas_cima_widgets[i] = self.canvas.create_image(
                 (643.0+(i-7)*52),
-                90.0,
-                image=self.images_mao_cima[i]
+                85.0,
+                image=self.cartas_cima_imgs[i], 
+                state='hidden'
             )
             
-            self.canvas.itemconfigure(self.window_mao_cima[i], state='hidden')
-
         self.label_jogador_cima = self.canvas.create_text(
             755.0,
             260.0,
             anchor="nw",
             text="None",
             fill="#000000",
-            font=("Poppins Regular", 24 * -1)
+            font=("Poppins Regular", 24 * -1),
+            state='hidden'
         )
         
-        self.canvas.itemconfigure(self.label_jogador_cima, state='hidden')
-        
-        # #POSICIONANDO QUEM JOGA ANTES DE MIM(DIREITA)
-        
+        # Nome e cartas do jogador a direita
         for i in range(7):
-            self.images_mao_direita[i] = PhotoImage(
-                master=self.window,
+            self.cartas_direita_imgs[i] = PhotoImage(
                 file=self.relative_to_assets(f'./jogador_remoto_direita.png'))
-            
-            self.window_mao_direita[i] = self.canvas.create_image(
-                1287.0,
+            self.cartas_direita_widgets[i] = self.canvas.create_image(
+                1413.0,
                 (294.0+i*52),
-                image=self.images_mao_direita[i]
+                image=self.cartas_direita_imgs[i],
+                state='hidden'
             )
-            
-            self.canvas.itemconfigure(self.window_mao_direita[i], state='hidden')
             
         for i in range(7, 14):
-            self.images_mao_direita[i] = PhotoImage(
-                master=self.window,
+            self.cartas_direita_imgs[i] = PhotoImage(
                 file=self.relative_to_assets(f'./jogador_remoto_direita.png'))
-
-            self.window_mao_direita[i] = self.canvas.create_image(
-                1387.0,
+            self.cartas_direita_widgets[i] = self.canvas.create_image(
+                1513.0,
                 (294.0+(i-7)*52),
-                image=self.images_mao_direita[i]
+                image=self.cartas_direita_imgs[i],
+                state='hidden'
             )
-            
-            self.canvas.itemconfigure(self.window_mao_direita[i], state='hidden')
 
         self.label_jogador_direita = self.canvas.create_text(
             1100.0,
@@ -230,33 +185,82 @@ class TelaInicial(DogPlayerInterface):
             anchor="nw",
             text="None",
             fill="#000000",
-            font=("Poppins Regular", 24 * -1)
+            font=("Poppins Regular", 24 * -1),
+            state='hidden'
         )
         
-        self.canvas.itemconfigure(self.label_jogador_direita, state='hidden')
-        
+        # Botão gritar UNO
         botao_uno_image = PhotoImage(
-                master=self.window,
                 file=self.relative_to_assets("botao_uno.png"))
-
         botao_uno = Button(
-            master=self.window,
             image=botao_uno_image,
             command=lambda: self.gritar_uno(),
         )
-
         self.botao_uno = self.canvas.create_window(1103.0, 732.0, width=160.0, height=80.0, anchor='nw', state='hidden', window=botao_uno)
 
+        # Texto lateral com as informações sobre o turno: Jogador da vez e cor atual
         self.infos_turno = self.canvas.create_text(
             115.0,
             82.0,
             anchor="nw",
             text="None",
             fill="#000000",
-            font=("Poppins Regular", 24 * -1)
+            font=("Poppins Regular", 24 * -1),
+            state='hidden'
         )
         
-        self.canvas.itemconfigure(self.infos_turno, state='hidden')
+        # Botões para escolha da cor da rodada
+        botao_amarelo_image = PhotoImage(
+            file=self.relative_to_assets("botao_amarelo.png"))
+        botao_amarelo = Button(
+            image=botao_amarelo_image,
+            command=lambda: self.escolher_uma_cor('amarelo'),
+        )
+        self.botao_amarelo = self.canvas.create_window(145.0, 734.0, width=70.0, height=70.0, anchor='nw', state='hidden', window=botao_amarelo)
+
+        botao_vermelho_image = PhotoImage(
+            file=self.relative_to_assets("botao_vermelho.png"))
+        botao_vermelho = Button(
+            image=botao_vermelho_image,
+            command=lambda: self.escolher_uma_cor('vermelho'),
+        )
+        self.botao_vermelho = self.canvas.create_window(218.0, 734.0, width=70.0, height=70.0, anchor='nw', state='hidden', window=botao_vermelho)
+
+        botao_azul_image = PhotoImage(
+            file=self.relative_to_assets("botao_azul.png"))
+        botao_azul = Button(
+            image=botao_azul_image,
+            command=lambda: self.escolher_uma_cor('azul'),
+        )
+        self.botao_azul = self.canvas.create_window(218.0, 661.0, width=70.0, height=70.0, anchor='nw', state='hidden', window=botao_azul)
+
+        botao_verde_image = PhotoImage(
+            file=self.relative_to_assets("botao_verde.png"))
+        botao_verde = Button(
+            image=botao_verde_image,
+            command=lambda: self.escolher_uma_cor('verde'),
+        )
+        self.botao_verde = self.canvas.create_window(145.0, 661.0, width=70.0, height=70.0, anchor='nw', state='hidden', window=botao_verde)
+
+        ##### Instancia os widgets da tela de encerramento
+        vitoria_image = PhotoImage(
+            file=self.relative_to_assets("vitoria.png"))
+        self.background_vitoria = self.canvas.create_image(
+            800.0,
+            450.0,
+            image=vitoria_image,
+            state='hidden'
+        )
+
+        self.vitoria_text = self.canvas.create_text(
+            174.0,
+            367.0,
+            anchor="nw",
+            text="O vencedor é\nMariana",
+            fill="#000000",
+            font=("Poppins Bold", 64 * -1),
+            state='hidden'
+        )
         
         self.window.mainloop()
 
@@ -270,11 +274,6 @@ class TelaInicial(DogPlayerInterface):
             self.abrir_tela_partida()
         else:
             self.atualizar_interface()
-    
-
-    def atualizar_interface(self):
-        print('atualizar interface')
-        self.abrir_tela_partida()
 
 
     def receive_start(self, start_status):
@@ -302,18 +301,16 @@ class TelaInicial(DogPlayerInterface):
 
 
     def abaixar_carta(self, indice_carta):
-        print(f'o indice eh {indice_carta}')
         if self.jogo.id_jogador_da_vez == self.jogo.id_local:
             if self.jogo.validar_carta(indice_carta):
                 jogador = self.jogo.get_jogador_local()
+                self.jogo.baixar_uma_carta(self.jogo.id_local, indice_carta, jogador.gritou_uno)
                 if isinstance(jogador.mao[indice_carta], CartaCuringa):
-                    cor = self.escolher_uma_cor()
-                    self.jogo.baixar_uma_carta(self.jogo.id_local, indice_carta, jogador.gritou_uno, cor)
+                    self.liberar_escolha_de_cor()
                 else:   
-                    self.jogo.baixar_uma_carta(self.jogo.id_local, indice_carta, jogador.gritou_uno)
-                dict_jogada = self.jogo.get_dict_enviar_jogada('baixar_uma_carta', jogador)
-                self.dog_server_interface.send_move(dict_jogada)
-                self.atualizar_interface()
+                    dict_jogada = self.jogo.get_dict_enviar_jogada('baixar_uma_carta', jogador)
+                    self.dog_server_interface.send_move(dict_jogada)
+                    self.atualizar_interface()
     
 
     def gritar_uno(self):
@@ -333,65 +330,81 @@ class TelaInicial(DogPlayerInterface):
                 dict_jogada = self.jogo.get_dict_enviar_jogada('comprar_uma_carta', jogador, finalizou_turno=tem_carta_valida)
                 self.dog_server_interface.send_move(dict_jogada)
 
-    def escolher_uma_cor(self):
-        cor_escolhida = simpledialog.askinteger(
-        title="Carta curinga", prompt="Digite 1 para vermelho, 2 para amarelo, 3 para verde e 4 para azul")
-        messagebox.showinfo(message="ok")
-        if cor_escolhida == 1:
-            self.carta_atual.cor_escolhida = 'vermelho'
-        elif cor_escolhida == 2:
-            self.carta_atual.cor_escolhida = 'amarelo'
-        elif cor_escolhida == 3:
-            self.carta_atual.cor_escolhida = 'verde'
-        elif cor_escolhida == 4:
-            self.carta_atual.cor_escolhida = 'azul'
-        else:
-            self.escolher_uma_cor()
 
+    def liberar_escolha_de_cor(self):
+        self.canvas.itemconfigure(self.botao_verde, state='normal')
+        self.canvas.itemconfigure(self.botao_amarelo, state='normal')
+        self.canvas.itemconfigure(self.botao_azul, state='normal')
+        self.canvas.itemconfigure(self.botao_vermelho, state='normal')
+
+
+    def escolher_uma_cor(self, cor):
+        jogador = self.jogo.get_jogador_local()
+        self.jogo.mesa.carta_atual.cor_escolhida = cor
+        dict_jogada = self.jogo.get_dict_enviar_jogada('baixar_uma_carta', jogador)
+        self.dog_server_interface.send_move(dict_jogada)
+        
+        self.canvas.itemconfigure(self.botao_verde, state='hidden')
+        self.canvas.itemconfigure(self.botao_amarelo, state='hidden')
+        self.canvas.itemconfigure(self.botao_azul, state='hidden')
+        self.canvas.itemconfigure(self.botao_vermelho, state='hidden')
+        
+        self.atualizar_interface()
+
+
+    def atualizar_interface(self):
+        if self.jogo.partida_em_andamento == True:
+            # Atualiza carta atual/mesa
+            self.carta_atual = PhotoImage(
+                file=self.relative_to_assets(f'./baralho/{self.jogo.mesa.carta_atual.codigo}.png'))
+            self.canvas.itemconfigure(self.table, image=self.carta_atual, state='normal')
+            
+            # Atualiza cartas do jogador local
+            for i in range(len(self.jogo.jogador_local.mao)):
+                carta = PhotoImage(
+                    file=self.relative_to_assets(f'./baralho/{self.jogo.jogador_local.mao[i].codigo}.png'))
+                self.cartas_local_imgs[i] = carta
+                self.cartas_local_btns[i].config(image=self.cartas_local_imgs[i])
+                self.canvas.itemconfigure(self.cartas_local_widgets[i], state='normal')
+            self.canvas.itemconfig(self.label_jogador_local, text=self.jogo.jogador_local.nome, state='normal')
+            
+            # Atualiza cartas do jogador de cima
+            jogador_cima = self.jogo.get_proximo_jogador_por_id(self.jogo.id_local)
+            for i in range(len(jogador_cima.mao)):
+                self.canvas.itemconfigure(self.cartas_cima_widgets[i], state='normal')
+            self.canvas.itemconfigure(self.label_jogador_cima, text=jogador_cima.nome, state='normal')
+            
+            # Atualiza cartas do jogador a direita
+            jogador_direita = self.jogo.get_proximo_jogador_por_id(jogador_cima.id)
+            for i in range(len(jogador_direita.mao)):
+                self.canvas.itemconfigure(self.cartas_direita_widgets[i], state='normal')
+            self.canvas.itemconfigure(self.label_jogador_direita, text=jogador_direita.nome, state='normal')
+            
+            # Atualiza as informações da rodada
+            jogador_da_vez = self.jogo.get_jogador_por_id(self.jogo.id_jogador_da_vez)
+            if isinstance(self.jogo.mesa.carta_atual, CartaCuringa):
+                cor_atual = self.jogo.mesa.carta_atual.cor_escolhida
+            else:
+                cor_atual = self.jogo.mesa.carta_atual.cor
+            self.canvas.itemconfigure(self.infos_turno, text=f"Vez de {jogador_da_vez.nome}\nCor da rodada: {cor_atual}", state='normal')
+        else:
+            self.canvas.itemconfigure(self.background_vitoria, state='normal')
+            self.canvas.itemconfigure(self.vitoria_text, state='normal')
+            self.canvas.itemconfigure(self.botao_uno, state='hidden')
+            self.canvas.itemconfigure(self.baralho, state='hidden')
+            self.canvas.itemconfigure(self.botao_verde, state='hidden')
+            self.canvas.itemconfigure(self.botao_amarelo, state='hidden')
+            self.canvas.itemconfigure(self.botao_azul, state='hidden')
+            self.canvas.itemconfigure(self.botao_vermelho, state='hidden')
+        
     def abrir_tela_partida(self):
-        print('cheguei aqui')
-        
-        self.carta_atual = PhotoImage(
-            master=self.window,
-            file=self.relative_to_assets(f'./baralho/{self.jogo.mesa.carta_atual.codigo}.png'))
-        
+        # Esconde widgets da tela principal
         self.canvas.itemconfigure(self.logo, state='hidden')
         self.canvas.itemconfigure(self.botaoJogar, state='hidden')
-        
-        self.canvas.itemconfigure(self.table, image=self.carta_atual, state='normal')
-        self.canvas.itemconfigure(self.baralho, state='normal')
-        
-        for i in range(len(self.jogo.jogador_local.mao)):
-            carta = PhotoImage(
-                master=self.window,
-                file=self.relative_to_assets(f'./baralho/{self.jogo.jogador_local.mao[i].codigo}.png'))
-            self.images_mao[i] = carta
-        
-            self.botoes_mao[i].config(image=self.images_mao[i])
-            self.canvas.itemconfigure(self.window_mao[i], state='normal')
-            
-        self.canvas.itemconfig(self.label_jogador_local, text=self.jogo.jogador_local.nome, state='normal')
-        
-        jogador_cima = self.jogo.get_proximo_jogador_por_id(self.jogo.id_local)
-        
-        for i in range(len(jogador_cima.mao)):
-            self.canvas.itemconfigure(self.window_mao_cima[i], state='normal')
-                        
-        self.canvas.itemconfigure(self.label_jogador_cima, text=jogador_cima.nome, state='normal')
-        
-        jogador_direita = self.jogo.get_proximo_jogador_por_id(jogador_cima.id)
-        
-        for i in range(len(jogador_direita.mao)):
-            self.canvas.itemconfigure(self.window_mao_direita[i], state='normal')
-                        
-        self.canvas.itemconfigure(self.label_jogador_direita, text=jogador_direita.nome, state='normal')
-        
+   
+        # Mostra o botões do jogo
         self.canvas.itemconfigure(self.botao_uno, state='normal')
-        
-        jogador_da_vez = self.jogo.get_jogador_por_id(self.jogo.id_jogador_da_vez)
-        
-        if isinstance(self.jogo.mesa.carta_atual, CartaCuringa):
-            cor = self.jogo.mesa.carta_atual.cor_escolhida
-        else:
-            cor = self.jogo.mesa.carta_atual.cor
-        self.canvas.itemconfigure(self.infos_turno, text=f"Vez de {jogador_da_vez.nome}\nCor da rodada: {cor}", state='normal')
+        self.canvas.itemconfigure(self.baralho, state='normal')
+    
+        # Atualiza a interface com as informações carregadas
+        self.atualizar_interface()
