@@ -151,6 +151,7 @@ class Jogo:
             
     def baixar_uma_carta(self, id_jogador, indice, gritou_uno, cor=""):
         jogador = self.get_jogador_por_id(id_jogador)
+        self.adicionar_log(f'jogador {jogador.nome} baixou a carta tal {jogador.mao[indice].codigo}')
         print(f'o tamanho da mao do jogador eh len(jogador.mao)')
         print(f'o indice q chegou aqui eh {indice}')
         carta_baixada = jogador.mao[indice]

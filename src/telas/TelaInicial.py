@@ -27,6 +27,9 @@ class TelaInicial(DogPlayerInterface):
         self.cartas_cima_widgets = {}
         self.cartas_direita_imgs = {}
         self.cartas_direita_widgets = {}
+        # Lista com os widgets de log
+        self.log_widgets = []
+
 
     @staticmethod
     def relative_to_assets(path: str) -> Path:
@@ -118,7 +121,7 @@ class TelaInicial(DogPlayerInterface):
             self.cartas_local_widgets[i] = self.canvas.create_window((593.0 + (i-7)*52), 740.0, width=103.0, height=147.0, anchor='nw', state='hidden', window=self.cartas_local_btns[i])
         
         self.label_jogador_local = self.canvas.create_text(
-            756.0,
+            755.0,
             600.0,
             anchor="nw",
             text= "None",
@@ -150,9 +153,9 @@ class TelaInicial(DogPlayerInterface):
             
         self.label_jogador_cima = self.canvas.create_text(
             755.0,
-            260.0,
+            265.0,
             anchor="nw",
-            text="None",
+            text="Player3",
             fill="#000000",
             font=("Poppins Regular", 24 * -1),
             state='hidden'
@@ -180,10 +183,10 @@ class TelaInicial(DogPlayerInterface):
             )
 
         self.label_jogador_direita = self.canvas.create_text(
-            1100.0,
+            1226.0,
             432.0,
             anchor="nw",
-            text="None",
+            text="Player2",
             fill="#000000",
             font=("Poppins Regular", 24 * -1),
             state='hidden'
@@ -241,6 +244,19 @@ class TelaInicial(DogPlayerInterface):
             command=lambda: self.escolher_uma_cor('verde'),
         )
         self.botao_verde = self.canvas.create_window(145.0, 661.0, width=70.0, height=70.0, anchor='nw', state='hidden', window=botao_verde)
+        
+        # Log da partida
+        for i in range(3):
+            log = self.canvas.create_text(
+                1101.0,
+                (80.0 + 40*i),
+                anchor="nw",
+                text="",
+                fill="#000000",
+                font=("Poppins Regular", 24 * -1),
+                state="hidden"
+            )
+            self.log_widgets.append(log)
 
         ##### Instancia os widgets da tela de encerramento
         vitoria_image = PhotoImage(
@@ -304,10 +320,11 @@ class TelaInicial(DogPlayerInterface):
         if self.jogo.id_jogador_da_vez == self.jogo.id_local:
             if self.jogo.validar_carta(indice_carta):
                 jogador = self.jogo.get_jogador_local()
-                self.jogo.baixar_uma_carta(self.jogo.id_local, indice_carta, jogador.gritou_uno)
                 if isinstance(jogador.mao[indice_carta], CartaCuringa):
                     self.liberar_escolha_de_cor()
-                else:   
+                    self.jogo.baixar_uma_carta(self.jogo.id_local, indice_carta, jogador.gritou_uno)
+                else:
+                    self.jogo.baixar_uma_carta(self.jogo.id_local, indice_carta, jogador.gritou_uno)
                     dict_jogada = self.jogo.get_dict_enviar_jogada('baixar_uma_carta', jogador)
                     self.dog_server_interface.send_move(dict_jogada)
                     self.atualizar_interface()
@@ -387,6 +404,10 @@ class TelaInicial(DogPlayerInterface):
             else:
                 cor_atual = self.jogo.mesa.carta_atual.cor
             self.canvas.itemconfigure(self.infos_turno, text=f"Vez de {jogador_da_vez.nome}\nCor da rodada: {cor_atual}", state='normal')
+            
+            # Atualiza log
+            for i in range(3):
+                self.canvas.itemconfigure(self.log_widgets[i], text=self.jogo.log[i], state='normal')
         else:
             self.canvas.itemconfigure(self.background_vitoria, state='normal')
             self.canvas.itemconfigure(self.vitoria_text, state='normal')
