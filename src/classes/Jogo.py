@@ -107,6 +107,7 @@ class Jogo:
                 mao = self.converter_dict_cartas_para_objetos(dict_jogador['mao'])
                 gritou_uno = dict_jogador['gritou_uno']
                 vencedor = dict_jogador['vencedor']
+
                 num_cartas = dict_jogador['num_cartas']
                 tem_carta_valida = dict_jogador['tem_carta_valida']
                 self.jogadores[i] = Jogador(id, nome, mao, gritou_uno, vencedor, num_cartas, tem_carta_valida)
@@ -123,7 +124,14 @@ class Jogo:
 
         elif tipo_jogada == 'baixar_uma_carta':
             self.partida_em_andamento = bool(dict_jogada['partida_em_andamento'])
-            self.baixar_uma_carta(dict_jogada['id_jogador'], dict_jogada['indice_carta_baixada'], dict_jogada['gritou_uno'])
+            jogador = self.get_jogador_por_id(dict_jogada['id_jogador'])
+            carta_baixada = jogador.mao[dict_jogada['indice_carta_baixada']]
+
+            if isinstance(carta_baixada, CartaCuringa):
+                cor_escolhida = dict_jogada['cor_escolhida']
+                self.baixar_uma_carta(dict_jogada['id_jogador'], dict_jogada['indice_carta_baixada'], dict_jogada['gritou_uno'], cor=cor_escolhida)
+            else:
+                self.baixar_uma_carta(dict_jogada['id_jogador'], dict_jogada['indice_carta_baixada'], dict_jogada['gritou_uno'])
 
         elif tipo_jogada == 'comprar_uma_carta':
             self.comprar_uma_carta(dict_jogada['id_jogador'], dict_jogada['gritou_uno'], dict_jogada['finalizou_turno'], False)
@@ -132,15 +140,22 @@ class Jogo:
     def validar_gritou_uno(self, gritou_uno, jogador):
         if bool(gritou_uno):
             jogador.gritou_uno = True
+            self.adicionar_log(f'{jogador.nome} gritou UNO!')
             for jog in self.jogadores:
                 if len(jog.mao) == 1 and not jog.gritou_uno:
                     carta_comprada = self.mesa.baralho.pegar_carta()
                     jog.mao.append(carta_comprada)
                     self.adicionar_log(f'{jog.nome} foi denunciado e comprou uma carta!')
+            
 
 
     def comprar_uma_carta(self, id_jogador, gritou_uno, finalizou_turno=False, eh_local = False):
-        jogador = self.get_jogador_por_id(id_jogador)
+
+        if eh_local:
+            jogador = self.get_jogador_local()
+        else:
+            jogador = self.get_jogador_por_id(id_jogador)
+
         jogador.gritou_uno = False
         self.validar_gritou_uno(gritou_uno, jogador)
         carta_comprada = self.mesa.baralho.pegar_carta()
@@ -177,6 +192,8 @@ class Jogo:
                 prox_jogador.mao = prox_jogador.mao + cartas
                 self.set_id_jogador_da_vez(jogador.id, pular_dois=True)
                 self.adicionar_log(f'{prox_jogador.nome} comprou 4 cartas!')
+            else:
+                self.set_id_jogador_da_vez(jogador.id, pular_dois=False)
 
             self.mesa.cor_atual = carta_baixada.cor_escolhida
             self.adicionar_log(f'{jogador.nome} escolheu a cor {carta_baixada.cor_escolhida}!')
@@ -195,7 +212,6 @@ class Jogo:
                 self.adicionar_log(f'{prox_jogador.nome} comprou 2 cartas!')
 
             elif carta_baixada.tipo == 'inverte':
-                #inverte ordem da lista e seta o proximo baseado no id
                 self.inverter_ordem_jogadores()
                 self.set_id_jogador_da_vez(jogador.id)
                 self.adicionar_log(f'{jogador.nome} inverteu o sentido do jogo!')
@@ -255,6 +271,8 @@ class Jogo:
             jogada['match_status'] = 'next'
             jogada['id_jogador'] = jogador.id
             jogada['indice_carta_baixada'] = indice_carta_baixada
+            if isinstance(self.mesa.carta_atual, CartaCuringa):
+                jogada['cor_escolhida'] = self.mesa.carta_atual.cor_escolhida
             jogada['gritou_uno'] = jogador.gritou_uno
             jogada['venceu_partida'] = len(jogador.mao) == 0
             jogada['finalizou_turno'] = finalizou_turno
@@ -272,13 +290,24 @@ class Jogo:
     def adicionar_log(self, texto_log):
         self.log[2] = self.log[1]
         self.log[1] = self.log[0]
-        self.log[0] = texto_log
+        self.log[0] = self.limpar_texto_log(texto_log)
 
 
     def get_jogador_local(self)->Jogador:
         for jogador in self.jogadores:
             if jogador.id == self.id_local:
                 return jogador
+
+    
+    def limpar_texto_log(self, texto_log) -> str:
+        if 'mais_quatro_False' in texto_log:
+            texto_log = texto_log.replace('mais_quatro_False', 'Curinga')
+        elif 'mais_quatro_True' in texto_log:
+            texto_log = texto_log.replace('mais_quatro_True', 'Mais Quatro')
+        else:
+            texto_log = texto_log.replace('_', ' ')
+        
+        return texto_log
 
 
     def tem_carta_valida(self):
@@ -288,10 +317,8 @@ class Jogo:
         for i in range(len(mao)):
             eh_valida = self.validar_carta(i)
             if eh_valida:
-                print(mao[0].codigo,' eh valida')
                 tem_carta_valida = True
         
-        print('tem carta valida chamada, resultado:', tem_carta_valida)
         return tem_carta_valida
 
 

@@ -4,7 +4,7 @@ from dog.dog_interface import DogPlayerInterface
 from classes.CartaCuringa import CartaCuringa
 from dog.dog_actor import DogActor
 from classes.Jogo import Jogo
-# from PIL import Image, ImageTk
+
 OUTPUT_PATH = Path(__file__).parent
 ASSETS_PATH = OUTPUT_PATH / Path("./arquivos")
 
@@ -280,7 +280,7 @@ class TelaInicial(DogPlayerInterface):
         
         self.window.mainloop()
 
-
+###################### METODOS SOBREESCRITOS DO DOG ##################################
     def receive_move(self, a_move):
         print("move recebido:",a_move)
         self.jogo.receber_jogada(a_move['tipo_jogada'], a_move)
@@ -293,8 +293,13 @@ class TelaInicial(DogPlayerInterface):
     def receive_start(self, start_status):
         id_jogador_local = start_status.get_local_id()
         self.jogo = Jogo()
-        self.jogo.id_local = id_jogador_local      
+        self.jogo.id_local = id_jogador_local 
     
+    def receive_withdrawal_notification(self):
+        messagebox.showinfo(message="Partida encerrada! Algum jogador foi desconectado.")
+        self.window.destroy()
+
+####################################################################################
 
     def iniciar_partida(self):
         start_status = self.dog_server_interface.start_match(3)
@@ -320,11 +325,12 @@ class TelaInicial(DogPlayerInterface):
                 
                 if isinstance(jogador.mao[indice_carta], CartaCuringa):
                     self.liberar_escolha_de_cor()
-
-                self.jogo.baixar_uma_carta(self.jogo.id_local, indice_carta, jogador.gritou_uno)
-                dict_jogada = self.jogo.get_dict_enviar_jogada('baixar_uma_carta', jogador, True, indice_carta)
-                self.dog_server_interface.send_move(dict_jogada)
-                self.atualizar_interface()
+                    self.indice_carta_curinga = indice_carta
+                else:
+                    self.jogo.baixar_uma_carta(self.jogo.id_local, indice_carta, jogador.gritou_uno)
+                    dict_jogada = self.jogo.get_dict_enviar_jogada('baixar_uma_carta', jogador, True, indice_carta)
+                    self.dog_server_interface.send_move(dict_jogada)
+                    self.atualizar_interface()
     
 
     def gritar_uno(self):
@@ -338,10 +344,10 @@ class TelaInicial(DogPlayerInterface):
         if self.jogo.id_jogador_da_vez == self.jogo.id_local:
             if len(jogador.mao) < 20:
                 self.jogo.comprar_uma_carta(self.jogo.id_local, jogador.gritou_uno, eh_local=True)
-                self.atualizar_interface()
                 tem_carta_valida = self.jogo.tem_carta_valida()
-                dict_jogada = self.jogo.get_dict_enviar_jogada('comprar_uma_carta', jogador, finalizou_turno=tem_carta_valida)
+                dict_jogada = self.jogo.get_dict_enviar_jogada('comprar_uma_carta', jogador, finalizou_turno=not tem_carta_valida)
                 self.dog_server_interface.send_move(dict_jogada)
+                self.atualizar_interface()
 
 
     def liberar_escolha_de_cor(self):
@@ -353,8 +359,11 @@ class TelaInicial(DogPlayerInterface):
 
     def escolher_uma_cor(self, cor):
         jogador = self.jogo.get_jogador_local()
+        jogador.mao[self.indice_carta_curinga].cor_escolhida = cor
+        print('indice_carta_curinga = ', self.indice_carta_curinga)
         self.jogo.mesa.carta_atual.cor_escolhida = cor
-        dict_jogada = self.jogo.get_dict_enviar_jogada('baixar_uma_carta', jogador)
+        self.jogo.baixar_uma_carta(self.jogo.id_local, self.indice_carta_curinga, jogador.gritou_uno, cor=cor)
+        dict_jogada = self.jogo.get_dict_enviar_jogada('baixar_uma_carta', jogador, finalizou_turno=True, indice_carta_baixada=self.indice_carta_curinga)
         self.dog_server_interface.send_move(dict_jogada)
         
         self.canvas.itemconfigure(self.botao_verde, state='hidden')
@@ -425,6 +434,7 @@ class TelaInicial(DogPlayerInterface):
             self.canvas.itemconfigure(self.botao_amarelo, state='hidden')
             self.canvas.itemconfigure(self.botao_azul, state='hidden')
             self.canvas.itemconfigure(self.botao_vermelho, state='hidden')
+        
         
     def abrir_tela_partida(self):
         # Esconde widgets da tela principal
