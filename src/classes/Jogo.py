@@ -89,6 +89,7 @@ class Jogo:
         self.mesa = Mesa(self.baralho)
         self.baralho.criar_baralho()
         self.id_jogador_da_vez = self.jogadores[0].id
+        self.partida_em_andamento = True
 
         for jogador in self.jogadores:
             self.mesa.baralho.embaralhar()
@@ -143,21 +144,24 @@ class Jogo:
         jogador = self.get_jogador_por_id(id_jogador)
         jogador.gritou_uno = False
         self.validar_gritou_uno(gritou_uno, jogador)
-        carta_comprada = self.baralho.pegar_carta()
+        carta_comprada = self.mesa.baralho.pegar_carta()
         jogador.mao.append(carta_comprada)
         if bool(finalizou_turno):
             self.set_id_jogador_da_vez(jogador.id)
-
-
-    def baixar_uma_carta(self, id_jogador, indice, gritou_uno):
+            
+    def baixar_uma_carta(self, id_jogador, indice, gritou_uno, cor=""):
         jogador = self.get_jogador_por_id(id_jogador)
-        jogador.baixar_uma_carta(int(indice))
+        self.adicionar_log(f'jogador {jogador.nome} baixou a carta tal {jogador.mao[indice].codigo}')
+        print(f'o tamanho da mao do jogador eh len(jogador.mao)')
+        print(f'o indice q chegou aqui eh {indice}')
         carta_baixada = jogador.mao[indice]
+        jogador.baixar_uma_carta(int(indice))
         self.mesa.carta_atual = carta_baixada
 
         self.validar_gritou_uno(gritou_uno, jogador)
 
         if isinstance(carta_baixada, CartaCuringa):
+            self.mesa.carta_atual.cor_escolhida = cor
             if carta_baixada.mais_quatro:
                 prox_jogador = self.get_proximo_jogador_por_id(jogador.id)
                 cartas = self.baralho.comprar_x_cartas(4)
@@ -237,12 +241,15 @@ class Jogo:
             jogada['mesa'] = jsons.dumps(self.mesa.__dict__)
             jogada['id_jogador_da_vez'] = self.id_jogador_da_vez
         elif tipo_jogada == 'baixar_uma_carta':
+            jogada['tipo_jogada'] = 'baixar_uma_carta'
             jogada['match_status'] = 'next'
             jogada['id_jogador'] = jogador.id
             jogada['indice_carta_baixada'] = indice_carta_baixada
             jogada['gritou_uno'] = jogador.gritou_uno
             jogada['venceu_partida'] = len(jogador.mao) == 0
+            jogada['finalizou_turno'] = finalizou_turno
         elif tipo_jogada == 'comprar_uma_carta':
+            jogada['tipo_jogada'] = 'comprar_uma_carta'
             jogada['match_status'] = 'next'
             jogada['id_jogador'] = jogador.id
             jogada['gritou_uno'] = jogador.gritou_uno
@@ -276,7 +283,7 @@ class Jogo:
 
 
     def validar_carta(self, indice):
-        carta = self.get_jogador_local().mao[indice]
+        carta = self.jogador_local.mao[indice]
 
         eh_colorida = isinstance(carta, CartaColorida)
         if not eh_colorida:  
