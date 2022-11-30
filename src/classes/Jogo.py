@@ -23,10 +23,8 @@ class Jogo:
 
     def get_proximo_jogador_por_id(self, id)->Jogador:
         indice_jogador_atual = self.ordem_jogadores.index(id)
-        print('indice jogador atual = ', indice_jogador_atual)
-        print('len ordem jogadores', len(self.ordem_jogadores))
-
         proximo_id = 0
+
         if len(self.ordem_jogadores) -1 == indice_jogador_atual:
             proximo_id = self.ordem_jogadores[0]
         else:
@@ -128,7 +126,7 @@ class Jogo:
             self.baixar_uma_carta(dict_jogada['id_jogador'], dict_jogada['indice_carta_baixada'], dict_jogada['gritou_uno'])
 
         elif tipo_jogada == 'comprar_uma_carta':
-            self.comprar_uma_carta(dict_jogada['id_jogador'], dict_jogada['gritou_uno'], dict_jogada['finalizou_turno'])
+            self.comprar_uma_carta(dict_jogada['id_jogador'], dict_jogada['gritou_uno'], dict_jogada['finalizou_turno'], False)
         
 
     def validar_gritou_uno(self, gritou_uno, jogador):
@@ -141,13 +139,17 @@ class Jogo:
                     self.adicionar_log(f'{jog.nome} foi denunciado e comprou uma carta!')
 
 
-    def comprar_uma_carta(self, id_jogador, gritou_uno, finalizou_turno):
+    def comprar_uma_carta(self, id_jogador, gritou_uno, finalizou_turno=False, eh_local = False):
         jogador = self.get_jogador_por_id(id_jogador)
         jogador.gritou_uno = False
         self.validar_gritou_uno(gritou_uno, jogador)
         carta_comprada = self.mesa.baralho.pegar_carta()
         jogador.mao.append(carta_comprada)
-        if bool(finalizou_turno):
+        print(jogador.nome,' comprou a carta ',carta_comprada.codigo)
+
+        if eh_local and not self.tem_carta_valida():
+            self.set_id_jogador_da_vez(jogador.id)
+        elif bool(finalizou_turno):
             self.set_id_jogador_da_vez(jogador.id)
             
 
@@ -172,7 +174,7 @@ class Jogo:
             if carta_baixada.mais_quatro:
                 prox_jogador = self.get_proximo_jogador_por_id(jogador.id)
                 cartas = self.mesa.baralho.comprar_x_cartas(4)
-                prox_jogador.mao.append(cartas)
+                prox_jogador.mao = prox_jogador.mao + cartas
                 self.set_id_jogador_da_vez(jogador.id, pular_dois=True)
                 self.adicionar_log(f'{prox_jogador.nome} comprou 4 cartas!')
 
@@ -188,7 +190,7 @@ class Jogo:
             elif carta_baixada.tipo == 'mais_dois':
                 prox_jogador = self.get_proximo_jogador_por_id(jogador.id)
                 cartas = self.mesa.baralho.comprar_x_cartas(2)
-                prox_jogador.mao.append(cartas)
+                prox_jogador.mao = prox_jogador.mao + cartas
                 self.set_id_jogador_da_vez(jogador.id, pular_dois=True)
                 self.adicionar_log(f'{prox_jogador.nome} comprou 2 cartas!')
 
@@ -209,7 +211,7 @@ class Jogo:
     def set_id_jogador_da_vez(self, id_jogador, pular_dois=False):
         if pular_dois:
             jogador_pulado = self.get_proximo_jogador_por_id(id_jogador)
-            prox_jogador = self.get_proximo_jogador_por_id(jogador_pulado)
+            prox_jogador = self.get_proximo_jogador_por_id(jogador_pulado.id)
             self.id_jogador_da_vez = prox_jogador.id
         else:
             prox_jogador = self.get_proximo_jogador_por_id(id_jogador)
@@ -286,8 +288,10 @@ class Jogo:
         for i in range(len(mao)):
             eh_valida = self.validar_carta(i)
             if eh_valida:
+                print(mao[0].codigo,' eh valida')
                 tem_carta_valida = True
         
+        print('tem carta valida chamada, resultado:', tem_carta_valida)
         return tem_carta_valida
 
 

@@ -317,14 +317,14 @@ class TelaInicial(DogPlayerInterface):
         if self.jogo.id_jogador_da_vez == self.jogo.id_local:
             if self.jogo.validar_carta(indice_carta):
                 jogador = self.jogo.get_jogador_local()
+                
                 if isinstance(jogador.mao[indice_carta], CartaCuringa):
                     self.liberar_escolha_de_cor()
-                    self.jogo.baixar_uma_carta(self.jogo.id_local, indice_carta, jogador.gritou_uno)
-                else:
-                    self.jogo.baixar_uma_carta(self.jogo.id_local, indice_carta, jogador.gritou_uno)
-                    dict_jogada = self.jogo.get_dict_enviar_jogada('baixar_uma_carta', jogador, True, indice_carta)
-                    self.dog_server_interface.send_move(dict_jogada)
-                    self.atualizar_interface()
+
+                self.jogo.baixar_uma_carta(self.jogo.id_local, indice_carta, jogador.gritou_uno)
+                dict_jogada = self.jogo.get_dict_enviar_jogada('baixar_uma_carta', jogador, True, indice_carta)
+                self.dog_server_interface.send_move(dict_jogada)
+                self.atualizar_interface()
     
 
     def gritar_uno(self):
@@ -337,8 +337,7 @@ class TelaInicial(DogPlayerInterface):
         jogador = self.jogo.get_jogador_local()
         if self.jogo.id_jogador_da_vez == self.jogo.id_local:
             if len(jogador.mao) < 20:
-                finalizou_turno = self.jogo.tem_carta_valida()
-                self.jogo.comprar_uma_carta(self.jogo.id_local, jogador.gritou_uno, finalizou_turno)
+                self.jogo.comprar_uma_carta(self.jogo.id_local, jogador.gritou_uno, eh_local=True)
                 self.atualizar_interface()
                 tem_carta_valida = self.jogo.tem_carta_valida()
                 dict_jogada = self.jogo.get_dict_enviar_jogada('comprar_uma_carta', jogador, finalizou_turno=tem_carta_valida)
