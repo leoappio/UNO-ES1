@@ -13,7 +13,7 @@ class Jogo:
         self.jogadores = [None, None, None]
         self.jogador_local = None
         self.id_local = ''
-        self.partida_em_andamento = False
+        self.partida_em_andamento = True
         self.id_jogador_da_vez = ''
         self.ordem_jogadores = []
         self.jogador_atual = ''
@@ -85,9 +85,9 @@ class Jogo:
         self.id_local = id_jogador_local
         self.jogadores = self.jogadores_list_para_objetos(jogadores)
         self.set_ordem_jogadores()
-        self.baralho = Baralho()
-        self.mesa = Mesa(self.baralho)
-        self.baralho.criar_baralho()
+        baralho = Baralho()
+        self.mesa = Mesa(baralho)
+        baralho.criar_baralho()
         self.id_jogador_da_vez = self.jogadores[0].id
         self.partida_em_andamento = True
 
@@ -124,6 +124,7 @@ class Jogo:
             self.set_jogador_local()
 
         elif tipo_jogada == 'baixar_uma_carta':
+            self.partida_em_andamento = bool(dict_jogada['partida_em_andamento'])
             self.baixar_uma_carta(dict_jogada['id_jogador'], dict_jogada['indice_carta_baixada'], dict_jogada['gritou_uno'])
 
         elif tipo_jogada == 'comprar_uma_carta':
@@ -135,7 +136,7 @@ class Jogo:
             jogador.gritou_uno = True
             for jog in self.jogadores:
                 if len(jog.mao) == 1 and not jog.gritou_uno:
-                    carta_comprada = self.baralho.pegar_carta()
+                    carta_comprada = self.mesa.baralho.pegar_carta()
                     jog.mao.append(carta_comprada)
                     self.adicionar_log(f'{jog.nome} foi denunciado e comprou uma carta!')
 
@@ -149,22 +150,28 @@ class Jogo:
         if bool(finalizou_turno):
             self.set_id_jogador_da_vez(jogador.id)
             
+
     def baixar_uma_carta(self, id_jogador, indice, gritou_uno, cor=""):
         jogador = self.get_jogador_por_id(id_jogador)
-        self.adicionar_log(f'jogador {jogador.nome} baixou a carta tal {jogador.mao[indice].codigo}')
-        print(f'o tamanho da mao do jogador eh len(jogador.mao)')
-        print(f'o indice q chegou aqui eh {indice}')
+        self.adicionar_log(f'jogador {jogador.nome} baixou a carta {jogador.mao[indice].codigo}')
         carta_baixada = jogador.mao[indice]
         jogador.baixar_uma_carta(int(indice))
         self.mesa.carta_atual = carta_baixada
 
         self.validar_gritou_uno(gritou_uno, jogador)
 
+        if len(jogador.get_mao()) == 0:
+            self.partida_em_andamento = False
+
+        print('mao do jogador')
+        for carta in jogador.mao:
+            print(carta.codigo)
+
         if isinstance(carta_baixada, CartaCuringa):
             self.mesa.carta_atual.cor_escolhida = cor
             if carta_baixada.mais_quatro:
                 prox_jogador = self.get_proximo_jogador_por_id(jogador.id)
-                cartas = self.baralho.comprar_x_cartas(4)
+                cartas = self.mesa.baralho.comprar_x_cartas(4)
                 prox_jogador.mao.append(cartas)
                 self.set_id_jogador_da_vez(jogador.id, pular_dois=True)
                 self.adicionar_log(f'{prox_jogador.nome} comprou 4 cartas!')
@@ -180,7 +187,7 @@ class Jogo:
 
             elif carta_baixada.tipo == 'mais_dois':
                 prox_jogador = self.get_proximo_jogador_por_id(jogador.id)
-                cartas = self.baralho.comprar_x_cartas(2)
+                cartas = self.mesa.baralho.comprar_x_cartas(2)
                 prox_jogador.mao.append(cartas)
                 self.set_id_jogador_da_vez(jogador.id, pular_dois=True)
                 self.adicionar_log(f'{prox_jogador.nome} comprou 2 cartas!')
@@ -191,6 +198,7 @@ class Jogo:
                 self.set_id_jogador_da_vez(jogador.id)
                 self.adicionar_log(f'{jogador.nome} inverteu o sentido do jogo!')
         else:
+            self.set_id_jogador_da_vez(jogador.id)
             self.mesa.set_cor_atual()
 
 
@@ -202,10 +210,10 @@ class Jogo:
         if pular_dois:
             jogador_pulado = self.get_proximo_jogador_por_id(id_jogador)
             prox_jogador = self.get_proximo_jogador_por_id(jogador_pulado)
-            self.id_jogador_da_vez = prox_jogador
+            self.id_jogador_da_vez = prox_jogador.id
         else:
             prox_jogador = self.get_proximo_jogador_por_id(id_jogador)
-            self.id_jogador_da_vez = prox_jogador
+            self.id_jogador_da_vez = prox_jogador.id
 
 
 
@@ -248,6 +256,7 @@ class Jogo:
             jogada['gritou_uno'] = jogador.gritou_uno
             jogada['venceu_partida'] = len(jogador.mao) == 0
             jogada['finalizou_turno'] = finalizou_turno
+            jogada['partida_em_andamento'] = self.partida_em_andamento
         elif tipo_jogada == 'comprar_uma_carta':
             jogada['tipo_jogada'] = 'comprar_uma_carta'
             jogada['match_status'] = 'next'

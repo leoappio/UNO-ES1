@@ -282,18 +282,15 @@ class TelaInicial(DogPlayerInterface):
 
 
     def receive_move(self, a_move):
-        print('receive move chamado')
-        print(a_move['tipo_jogada'])
+        print("move recebido:",a_move)
         self.jogo.receber_jogada(a_move['tipo_jogada'], a_move)
         if a_move['tipo_jogada'] == 'jogada_inicial':
-            print('oi')
             self.abrir_tela_partida()
         else:
             self.atualizar_interface()
 
 
     def receive_start(self, start_status):
-        print('receive start chamado')
         id_jogador_local = start_status.get_local_id()
         self.jogo = Jogo()
         self.jogo.id_local = id_jogador_local      
@@ -325,7 +322,7 @@ class TelaInicial(DogPlayerInterface):
                     self.jogo.baixar_uma_carta(self.jogo.id_local, indice_carta, jogador.gritou_uno)
                 else:
                     self.jogo.baixar_uma_carta(self.jogo.id_local, indice_carta, jogador.gritou_uno)
-                    dict_jogada = self.jogo.get_dict_enviar_jogada('baixar_uma_carta', jogador)
+                    dict_jogada = self.jogo.get_dict_enviar_jogada('baixar_uma_carta', jogador, True, indice_carta)
                     self.dog_server_interface.send_move(dict_jogada)
                     self.atualizar_interface()
     
@@ -403,6 +400,8 @@ class TelaInicial(DogPlayerInterface):
                 cor_atual = self.jogo.mesa.carta_atual.cor_escolhida
             else:
                 cor_atual = self.jogo.mesa.carta_atual.cor
+            
+            print('id_da_vez aqui'+ self.jogo.id_jogador_da_vez)
             self.canvas.itemconfigure(self.infos_turno, text=f"Vez de {jogador_da_vez.nome}\nCor da rodada: {cor_atual}", state='normal')
             
             # Atualiza log
