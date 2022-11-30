@@ -387,14 +387,21 @@ class TelaInicial(DogPlayerInterface):
             
             # Atualiza cartas do jogador de cima
             jogador_cima = self.jogo.get_proximo_jogador_por_id(self.jogo.id_local)
-            for i in range(len(jogador_cima.mao)):
-                self.canvas.itemconfigure(self.cartas_cima_widgets[i], state='normal')
+            for i in range(14):
+                if i < len(jogador_cima.mao):
+                    self.canvas.itemconfigure(self.cartas_cima_widgets[i], state='normal')
+                else:
+                    self.canvas.itemconfigure(self.cartas_cima_widgets[i], state='hidden')
+            
             self.canvas.itemconfigure(self.label_jogador_cima, text=jogador_cima.nome, state='normal')
             
             # Atualiza cartas do jogador a direita
             jogador_direita = self.jogo.get_proximo_jogador_por_id(jogador_cima.id)
-            for i in range(len(jogador_direita.mao)):
-                self.canvas.itemconfigure(self.cartas_direita_widgets[i], state='normal')
+            for i in range(14):
+                if i < len(jogador_direita.mao):
+                    self.canvas.itemconfigure(self.cartas_direita_widgets[i], state='normal')
+                else:
+                    self.canvas.itemconfigure(self.cartas_direita_widgets[i], state='hidden')
             self.canvas.itemconfigure(self.label_jogador_direita, text=jogador_direita.nome, state='normal')
             
             # Atualiza as informações da rodada
