@@ -20,6 +20,7 @@ class Jogo:
         self.partida_abandonada = False
         self.log = [None, None, None]
         self.mesa = None
+        self.vencedor = ""
 
     def get_proximo_jogador_por_id(self, id)->Jogador:
         indice_jogador_atual = self.ordem_jogadores.index(id)
@@ -179,6 +180,7 @@ class Jogo:
 
         if len(jogador.get_mao()) == 0:
             self.partida_em_andamento = False
+            self.vencedor = jogador.nome
 
         print('mao do jogador')
         for carta in jogador.mao:

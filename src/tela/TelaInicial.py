@@ -267,12 +267,13 @@ class TelaInicial(DogPlayerInterface):
             image=vitoria_image,
             state='hidden'
         )
+        
 
         self.vitoria_text = self.canvas.create_text(
             174.0,
             367.0,
             anchor="nw",
-            text="O vencedor é\nMariana",
+            text=f"O vencedor é\n{self.jogo.vencedor if self.jogo != None else ''}",
             fill="#000000",
             font=("Poppins Bold", 64 * -1),
             state='hidden'
@@ -434,6 +435,9 @@ class TelaInicial(DogPlayerInterface):
             self.canvas.itemconfigure(self.botao_amarelo, state='hidden')
             self.canvas.itemconfigure(self.botao_azul, state='hidden')
             self.canvas.itemconfigure(self.botao_vermelho, state='hidden')
+
+            for i in range(len(self.cartas_local_widgets)):
+                self.canvas.itemconfigure(self.cartas_local_widgets[i], state='hidden')
         
         
     def abrir_tela_partida(self):
