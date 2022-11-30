@@ -374,13 +374,16 @@ class TelaInicial(DogPlayerInterface):
             self.canvas.itemconfigure(self.table, image=self.carta_atual, state='normal')
             
             # Atualiza cartas do jogador local
-            for i in range(len(self.jogo.jogador_local.mao)):
-                carta = PhotoImage(
-                    file=self.relative_to_assets(f'./baralho/{self.jogo.jogador_local.mao[i].codigo}.png'))
-                self.cartas_local_imgs[i] = carta
-                self.cartas_local_btns[i].config(image=self.cartas_local_imgs[i])
-                self.canvas.itemconfigure(self.cartas_local_widgets[i], state='normal')
-            self.canvas.itemconfig(self.label_jogador_local, text=self.jogo.jogador_local.nome, state='normal')
+            for i in range(14):
+                if i < len(self.jogo.jogador_local.mao):
+                    carta = PhotoImage(
+                        file=self.relative_to_assets(f'./baralho/{self.jogo.jogador_local.mao[i].codigo}.png'))
+                    self.cartas_local_imgs[i] = carta
+                    self.cartas_local_btns[i].config(image=self.cartas_local_imgs[i])
+                    self.canvas.itemconfigure(self.cartas_local_widgets[i], state='normal')
+                else:
+                    self.canvas.itemconfigure(self.cartas_local_widgets[i], state='hidden')
+                self.canvas.itemconfig(self.label_jogador_local, text=self.jogo.jogador_local.nome, state='normal')
             
             # Atualiza cartas do jogador de cima
             jogador_cima = self.jogo.get_proximo_jogador_por_id(self.jogo.id_local)
