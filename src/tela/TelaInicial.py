@@ -1,5 +1,5 @@
 from pathlib import Path
-from tkinter import Tk, Canvas, PhotoImage, Button, Toplevel, messagebox, simpledialog
+from tkinter import Tk, Canvas, PhotoImage, Button, messagebox, simpledialog
 from dog.dog_interface import DogPlayerInterface
 from classes.CartaCuringa import CartaCuringa
 from dog.dog_actor import DogActor
@@ -253,7 +253,7 @@ class TelaInicial(DogPlayerInterface):
                 anchor="nw",
                 text="",
                 fill="#000000",
-                font=("Poppins Regular", 24 * -1),
+                font=("Poppins Regular", 21 * -1),
                 state="hidden"
             )
             self.log_widgets.append(log)
@@ -273,7 +273,7 @@ class TelaInicial(DogPlayerInterface):
             174.0,
             367.0,
             anchor="nw",
-            text=f"O vencedor é\n{self.jogo.vencedor if self.jogo != None else ''}",
+            text="O vencedor é\n",
             fill="#000000",
             font=("Poppins Bold", 64 * -1),
             state='hidden'
@@ -281,9 +281,8 @@ class TelaInicial(DogPlayerInterface):
         
         self.window.mainloop()
 
-###################### METODOS SOBREESCRITOS DO DOG ##################################
+
     def receive_move(self, a_move):
-        print("move recebido:",a_move)
         self.jogo.receber_jogada(a_move['tipo_jogada'], a_move)
         if a_move['tipo_jogada'] == 'jogada_inicial':
             self.abrir_tela_partida()
@@ -296,18 +295,17 @@ class TelaInicial(DogPlayerInterface):
         self.jogo = Jogo()
         self.jogo.id_local = id_jogador_local 
     
+
     def receive_withdrawal_notification(self):
         messagebox.showinfo(message="Partida encerrada! Algum jogador foi desconectado.")
         self.window.destroy()
 
-####################################################################################
 
     def iniciar_partida(self):
         start_status = self.dog_server_interface.start_match(3)
         message = start_status.get_message()
         messagebox.showinfo(message=message)
         codigo = start_status.get_code()
-        print(start_status.get_players())
 
         if codigo == '2':
             jogadores = start_status.get_players()
@@ -337,7 +335,7 @@ class TelaInicial(DogPlayerInterface):
     def gritar_uno(self):
         if self.jogo.id_jogador_da_vez == self.jogo.id_local:
             jogador = self.jogo.get_jogador_local()
-            self.jogo.validar_gritou_uno(True, jogador)
+            jogador.gritou_uno = True
     
     
     def comprar_uma_carta(self):
@@ -361,7 +359,6 @@ class TelaInicial(DogPlayerInterface):
     def escolher_uma_cor(self, cor):
         jogador = self.jogo.get_jogador_local()
         jogador.mao[self.indice_carta_curinga].cor_escolhida = cor
-        print('indice_carta_curinga = ', self.indice_carta_curinga)
         self.jogo.mesa.carta_atual.cor_escolhida = cor
         self.jogo.baixar_uma_carta(self.jogo.id_local, self.indice_carta_curinga, jogador.gritou_uno, cor=cor)
         dict_jogada = self.jogo.get_dict_enviar_jogada('baixar_uma_carta', jogador, finalizou_turno=True, indice_carta_baixada=self.indice_carta_curinga)
@@ -420,7 +417,6 @@ class TelaInicial(DogPlayerInterface):
             else:
                 cor_atual = self.jogo.mesa.carta_atual.cor
             
-            print('id_da_vez aqui'+ self.jogo.id_jogador_da_vez)
             self.canvas.itemconfigure(self.infos_turno, text=f"Vez de {jogador_da_vez.nome}\nCor da rodada: {cor_atual}", state='normal')
             
             # Atualiza log
@@ -428,7 +424,7 @@ class TelaInicial(DogPlayerInterface):
                 self.canvas.itemconfigure(self.log_widgets[i], text=self.jogo.log[i], state='normal')
         else:
             self.canvas.itemconfigure(self.background_vitoria, state='normal')
-            self.canvas.itemconfigure(self.vitoria_text, state='normal')
+            self.canvas.itemconfigure(self.vitoria_text, text=f"O vencedor é \n{self.jogo.vencedor}", state='normal')
             self.canvas.itemconfigure(self.botao_uno, state='hidden')
             self.canvas.itemconfigure(self.baralho, state='hidden')
             self.canvas.itemconfigure(self.botao_verde, state='hidden')

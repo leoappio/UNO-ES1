@@ -57,22 +57,3 @@ class Baralho:
                 return carta       
             
             self.cartas.append(carta)
-
-    
-    def eh_especial(self, carta):
-        cod_retorno = 0
-        if isinstance(carta, CartaCuringa):
-            if isinstance(carta, CartaEspecial):
-                if carta.tipo == 'bloqueio':
-                    cod_retorno = 3
-                elif carta.tipo == 'mais_dois':
-                    cod_retorno = 2
-                else:
-                    cod_retorno = 4
-            else:
-                if carta.mais_quatro:
-                    return 1
-                else:
-                    return 5
-        
-        return cod_retorno
