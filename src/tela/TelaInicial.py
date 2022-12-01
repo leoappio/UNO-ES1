@@ -293,10 +293,11 @@ class TelaInicial(DogPlayerInterface):
     def receive_start(self, start_status):
         id_jogador_local = start_status.get_local_id()
         self.jogo = Jogo()
-        self.jogo.id_local = id_jogador_local 
+        self.jogo.set_id_local(id_jogador_local)
     
 
     def receive_withdrawal_notification(self):
+        self.jogo.set_partida_em_andamento(False)
         messagebox.showinfo(message="Partida encerrada! Algum jogador foi desconectado.")
         self.window.destroy()
 
@@ -333,9 +334,10 @@ class TelaInicial(DogPlayerInterface):
     
 
     def gritar_uno(self):
-        if self.jogo.id_jogador_da_vez == self.jogo.id_local:
-            jogador = self.jogo.get_jogador_local()
-            jogador.gritou_uno = True
+        id_atual = self.jogo.get_id_jogador_da_vez()
+        id_local = self.jogo.get_id_local()
+        if id_atual == id_local:
+            self.jogo.gritar_uno()
     
     
     def comprar_uma_carta(self):

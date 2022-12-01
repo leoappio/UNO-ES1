@@ -55,6 +55,11 @@ class Jogo:
                 jogadores_remotos.append(jogador)
         return jogadores_remotos
 
+    def get_id_local(self):
+        return self.id_local
+
+    def get_id_jogador_da_vez(self):
+        return self.id_jogador_da_vez
 
     def set_ordem_jogadores(self):
         self.ordem_jogadores = []
@@ -66,6 +71,16 @@ class Jogo:
         for jogador in self.jogadores:
             if jogador.id == self.id_local:
                 self.jogador_local = jogador
+
+
+    def set_id_local(self, id):
+        self.id_local = id
+
+    def set_id_jogador_da_vez(self, id):
+        self.id_jogador_da_vez = id
+
+    def set_partida_em_andamento(self, bool):
+        self.partida_em_andamento = bool
       
     
     def jogadores_list_para_objetos(self, jogadores_list):
@@ -73,20 +88,22 @@ class Jogo:
         for jogador in jogadores_list:
             nome = jogador[0]
             id = jogador[1]
-            jogadores.append(Jogador(id, nome))
+            jog = Jogador(id, nome)
+            jogadores.append(jog)
         
         return jogadores
 
 
     def iniciar_jogo(self, jogadores: list, id_jogador_local: str):
-        self.id_local = id_jogador_local
+        self.set_id_local(id_jogador_local)
         self.jogadores = self.jogadores_list_para_objetos(jogadores)
         self.set_ordem_jogadores()
         baralho = Baralho()
         self.mesa = Mesa(baralho)
         baralho.criar_baralho()
-        self.id_jogador_da_vez = self.jogadores[0].id
-        self.partida_em_andamento = True
+        ordem = self.get_ordem_jogadores()
+        self.set_id_jogador_da_vez(ordem[0])
+        self.set_partida_em_andamento(True)
 
         for jogador in self.jogadores:
             self.mesa.baralho.embaralhar()
@@ -133,7 +150,7 @@ class Jogo:
 
         elif tipo_jogada == 'comprar_uma_carta':
             self.comprar_uma_carta(dict_jogada['id_jogador'], dict_jogada['gritou_uno'], dict_jogada['finalizou_turno'], False)
-        
+
 
     def validar_gritou_uno(self, gritou_uno, jogador):
         if bool(gritou_uno):
@@ -188,7 +205,7 @@ class Jogo:
             if carta_baixada.mais_quatro:
                 prox_jogador = self.get_proximo_jogador_por_id(jogador.id)
                 cartas = self.mesa.baralho.comprar_x_cartas(4)
-                prox_jogador.mao = prox_jogador.mao + cartas
+                prox_jogador.set_mao(prox_jogador.mao + cartas)
                 self.set_id_jogador_da_vez(jogador.id, pular_dois=True)
                 self.adicionar_log(f'{prox_jogador.nome} comprou 4 cartas!')
             else:
@@ -349,3 +366,8 @@ class Jogo:
                         return True
         
         return False
+
+
+    def gritar_uno(self):
+        jogador = self.get_jogador_local()
+        jogador.gritou_uno = True

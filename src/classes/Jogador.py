@@ -13,3 +13,5 @@ class Jogador:
     
     def baixar_uma_carta(self, indice_na_mao):
         self.mao.pop(indice_na_mao)
+
+    
