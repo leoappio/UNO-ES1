@@ -1,9 +1,10 @@
 class Jogador:
-    def __init__(self, id, nome, mao =[], gritou_uno = False):
+    def __init__(self, id, nome, mao =[], gritou_uno = False, vencedor = False):
         self.id = id
         self.nome = nome
         self.mao = mao
         self.gritou_uno = gritou_uno
+        self.vencedor = vencedor
 
     def set_mao(self, mao):
         self.mao = mao
@@ -23,7 +24,12 @@ class Jogador:
     def get_nome(self):
         return self.nome
         
+        
     def baixar_uma_carta(self, indice_na_mao):
         self.mao.pop(indice_na_mao)
+
+    def adicionar_cartas_na_mao(self, cartas):
+        for carta in cartas:
+            self.mao.append(carta)
 
     

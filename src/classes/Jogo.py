@@ -264,7 +264,7 @@ class Jogo:
             elif 'numero' in carta:
                 cor = carta['cor']
                 tipo = carta['tipo']
-                numero = carta['numero']
+                numero = int(carta['numero'])
                 cartas_obj.append(CartaNumerada(cor, tipo, numero))
             else:
                 cor = carta['cor']
