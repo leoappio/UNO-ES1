@@ -285,20 +285,21 @@ class Jogo:
         elif tipo_jogada == 'baixar_uma_carta':
             jogada['tipo_jogada'] = 'baixar_uma_carta'
             jogada['match_status'] = 'next'
-            jogada['id_jogador'] = jogador.id
+            jogada['id_jogador'] = jogador.get_id()
             jogada['indice_carta_baixada'] = indice_carta_baixada
-            if isinstance(self.mesa.carta_atual, CartaCuringa):
-                jogada['cor_escolhida'] = self.mesa.carta_atual.cor_escolhida
-            jogada['gritou_uno'] = jogador.gritou_uno
+            eh_curinga = isinstance(self.mesa.get_carta_atual(), CartaCuringa)
+            if eh_curinga:
+                jogada['cor_escolhida'] = self.mesa.get_carta_atual().get_cor_escolhida()
+            jogada['gritou_uno'] = jogador.get_gritou_uno()
             jogada['finalizou_turno'] = finalizou_turno
             jogada['partida_em_andamento'] = self.partida_em_andamento
             if not self.partida_em_andamento:
-                jogada['vencedor'] = self.get_jogador_local().nome
+                jogada['vencedor'] = self.get_jogador_local().get_nome()
         elif tipo_jogada == 'comprar_uma_carta':
             jogada['tipo_jogada'] = 'comprar_uma_carta'
             jogada['match_status'] = 'next'
-            jogada['id_jogador'] = jogador.id
-            jogada['gritou_uno'] = jogador.gritou_uno
+            jogada['id_jogador'] = jogador.get_id()
+            jogada['gritou_uno'] = jogador.get_gritou_uno()
             jogada['finalizou_turno'] = finalizou_turno
 
         return jogada
@@ -370,4 +371,4 @@ class Jogo:
 
     def gritar_uno(self):
         jogador = self.get_jogador_local()
-        jogador.gritou_uno = True
+        jogador.set_gritou_uno(True)

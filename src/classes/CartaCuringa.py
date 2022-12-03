@@ -6,3 +6,6 @@ class CartaCuringa(Carta):
         self.mais_quatro = mais_quatro
         self.cor_escolhida = cor_escolhida
         self.codigo = f'mais_quatro_{mais_quatro}'
+
+    def get_cor_escolhida(self):
+        return self.cor_escolhida
