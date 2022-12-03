@@ -298,6 +298,7 @@ class TelaInicial(DogPlayerInterface):
 
     def receive_withdrawal_notification(self):
         self.jogo.set_partida_em_andamento(False)
+        self.jogo.set_partida_abandonada(True)
         messagebox.showinfo(message="Partida encerrada! Algum jogador foi desconectado.")
         self.window.destroy()
 

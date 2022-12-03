@@ -14,6 +14,7 @@ class Jogo:
         self.jogador_local = None
         self.id_local = ''
         self.partida_em_andamento = True
+        self.partida_abandonada = False
         self.id_jogador_da_vez = ''
         self.ordem_jogadores = []
         self.log = [None, None, None]
@@ -81,7 +82,9 @@ class Jogo:
 
     def set_partida_em_andamento(self, bool):
         self.partida_em_andamento = bool
-      
+
+    def set_partida_abandonada(self, bool):
+        self.partida_abandonada = bool     
     
     def jogadores_list_para_objetos(self, jogadores_list):
         jogadores = []
