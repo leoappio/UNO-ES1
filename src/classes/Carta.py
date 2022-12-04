@@ -4,6 +4,9 @@ class Carta(ABC):
     def __init__(self):
         self.codigo = ""
         
+    def get_codigo(self):
+        return self.codigo
+        
     def get_mais_quatro(self):
         pass
     

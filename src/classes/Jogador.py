@@ -1,3 +1,4 @@
+from classes.Carta import Carta
 class Jogador:
     def __init__(self, id, nome, mao =[], gritou_uno = False):
         self.id = id
@@ -30,7 +31,7 @@ class Jogador:
     def get_nome(self):
         return self.nome
         
-    def get_carta_by_indice(self, indice):
+    def get_carta_by_indice(self, indice)->Carta:
         return self.mao[indice]
         
     def baixar_uma_carta(self, indice_na_mao):
