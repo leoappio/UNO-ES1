@@ -6,4 +6,7 @@ class CartaColorida(Carta, ABC):
         super().__init__()
         self.cor = cor
         self.tipo = tipo
+    
+    def get_tipo(self):
+        return self.tipo
 
