@@ -187,8 +187,10 @@ class Jogo:
 
     def baixar_uma_carta(self, id_jogador, indice, gritou_uno, cor=""):
         jogador = self.get_jogador_por_id(id_jogador)
-        self.adicionar_log(f'{jogador.nome} baixou a carta {jogador.mao[indice].codigo}')
         carta_baixada = jogador.get_carta_by_indice(indice)
+        nome = jogador.get_nome()
+        codigo_carta = carta_baixada.get_codigo()
+        self.adicionar_log(f'{nome} baixou a carta {codigo_carta}')
         jogador.baixar_uma_carta(int(indice))
         self.mesa.set_carta_atual(carta_baixada)
 
@@ -197,7 +199,6 @@ class Jogo:
         tamanho_mao = jogador.get_mao_size()
         if tamanho_mao == 0:
             self.set_partida_em_andamento(False)
-            nome = jogador.get_nome()
             self.set_vencedor(nome)
             jogador.set_vencedor(True)
 
@@ -212,19 +213,21 @@ class Jogo:
                 mao_prox_jogador = prox_jogador.get_mao()
                 prox_jogador.set_mao(mao_prox_jogador + cartas)
                 self.set_id_proximo(id_jogador, pular_dois=True)
-                self.adicionar_log(f'{prox_jogador.nome} comprou 4 cartas!')
+                nome_prox_jogador = prox_jogador.get_nome()
+                self.adicionar_log(f'{nome_prox_jogador} comprou 4 cartas!')
             else:
                 self.set_id_proximo(id_jogador, pular_dois=False)
 
             self.mesa.set_cor_atual(cor)
-            self.adicionar_log(f'{jogador.nome} escolheu a cor {carta_baixada.cor_escolhida}!')
+            self.adicionar_log(f'{nome} escolheu a cor {cor}!')
 
         elif eh_carta_especial:
             tipo = carta_baixada.get_tipo()
             if tipo == 'bloqueio':
                 self.set_id_proximo(id_jogador, pular_dois=True)                 
                 prox_jogador = self.get_proximo_jogador_por_id(id_jogador)
-                self.adicionar_log(f'{prox_jogador.nome} foi bloqueado!')
+                nome_prox_jogador = prox_jogador.get_nome()
+                self.adicionar_log(f'{nome_prox_jogador} foi bloqueado!')
 
             elif tipo == 'mais_dois':
                 prox_jogador = self.get_proximo_jogador_por_id(id_jogador)
@@ -232,14 +235,15 @@ class Jogo:
                 mao_prox_jogador = prox_jogador.get_mao()
                 prox_jogador.set_mao(mao_prox_jogador + cartas)
                 self.set_id_proximo(id_jogador, pular_dois=True)
-                self.adicionar_log(f'{prox_jogador.nome} comprou 2 cartas!')
+                nome_prox_jogador = prox_jogador.get_nome()
+                self.adicionar_log(f'{nome_prox_jogador} comprou 2 cartas!')
 
             elif tipo == 'inverte':
                 self.inverter_ordem_jogadores()
                 self.set_id_proximo(id_jogador)
-                self.adicionar_log(f'{jogador.nome} inverteu o sentido do jogo!')
+                self.adicionar_log(f'{nome} inverteu o sentido do jogo!')
         else:
-            self.set_id_proximo(jogador.id)
+            self.set_id_proximo(id_jogador)
             self.mesa.set_cor_atual()
 
 
