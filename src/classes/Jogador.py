@@ -15,6 +15,9 @@ class Jogador:
     def get_mao(self):
         return self.mao
 
+    def get_mao_size(self):
+        return len(self.mao)
+
     def get_gritou_uno(self):
         return self.gritou_uno
     
@@ -24,6 +27,8 @@ class Jogador:
     def get_nome(self):
         return self.nome
         
+    def get_carta_by_indice(self, indice):
+        return self.mao[indice]
         
     def baixar_uma_carta(self, indice_na_mao):
         self.mao.pop(indice_na_mao)

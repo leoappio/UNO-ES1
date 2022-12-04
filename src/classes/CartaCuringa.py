@@ -9,3 +9,9 @@ class CartaCuringa(Carta):
 
     def get_cor_escolhida(self):
         return self.cor_escolhida
+    
+    def get_mais_quatro(self):
+        return self.mais_quatro
+    
+    def set_cor_escolhida(self, nova_cor):
+        self.cor_escolhida = nova_cor
