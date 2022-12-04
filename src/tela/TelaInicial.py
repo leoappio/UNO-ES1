@@ -355,9 +355,13 @@ class TelaInicial(DogPlayerInterface):
     
     def comprar_uma_carta(self):
         jogador = self.jogo.get_jogador_local()
-        if self.jogo.id_jogador_da_vez == self.jogo.id_local:
-            if len(jogador.mao) < 20:
-                self.jogo.comprar_uma_carta(self.jogo.id_local, jogador.gritou_uno, eh_local=True)
+        id_atual = self.jogo.get_id_jogador_da_vez()
+        id_local = self.jogo.get_id_local()
+        if id_atual == id_local:
+            qnt_de_cartas = jogador.get_mao_size()
+            if qnt_de_cartas < 20:
+                gritou_uno = jogador.get_gritou_uno()
+                self.jogo.comprar_uma_carta(id_local, gritou_uno, eh_local=True)
                 tem_carta_valida = self.jogo.tem_carta_valida()
                 dict_jogada = self.jogo.get_dict_enviar_jogada('comprar_uma_carta', jogador, finalizou_turno=not tem_carta_valida)
                 self.dog_server_interface.send_move(dict_jogada)

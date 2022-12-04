@@ -20,3 +20,6 @@ class Mesa:
 
     def get_carta_atual(self):
         return self.carta_atual
+
+    def get_baralho(self):
+        return self.baralho

@@ -174,15 +174,18 @@ class Jogo:
         else:
             jogador = self.get_jogador_por_id(id_jogador)
 
-        jogador.gritou_uno = False
+        jogador.set_gritou_uno(False)
         self.validar_gritou_uno(gritou_uno, jogador)
-        carta_comprada = self.mesa.baralho.pegar_carta()
-        jogador.mao.append(carta_comprada)
+        baralho = self.mesa.get_baralho()
+        carta_comprada = baralho.pegar_carta()
+        jogador.adicionar_cartas_na_mao([carta_comprada])
 
-        if eh_local and not self.tem_carta_valida():
-            self.set_id_proximo(jogador.id)
+        tem_carta_valida = self.tem_carta_valida()
+        id_jogador = jogador.get_id()
+        if eh_local and not tem_carta_valida:
+            self.set_id_proximo(id_jogador)
         elif bool(finalizou_turno):
-            self.set_id_proximo(jogador.id)
+            self.set_id_proximo(id_jogador)
             
 
     def baixar_uma_carta(self, id_jogador, indice, gritou_uno, cor=""):
@@ -250,11 +253,14 @@ class Jogo:
     def set_id_proximo(self, id_jogador, pular_dois=False):
         if pular_dois:
             jogador_pulado = self.get_proximo_jogador_por_id(id_jogador)
-            prox_jogador = self.get_proximo_jogador_por_id(jogador_pulado.id)
-            self.set_id_jogador_da_vez(prox_jogador.id)
+            id_jogador_pulado = jogador_pulado.get_id()
+            prox_jogador = self.get_proximo_jogador_por_id(id_jogador_pulado)
+            id_prox = prox_jogador.get_id()
+            self.set_id_jogador_da_vez(id_prox)
         else:
             prox_jogador = self.get_proximo_jogador_por_id(id_jogador)
-            self.set_id_jogador_da_vez(prox_jogador.id)
+            id_prox = prox_jogador.get_id()
+            self.set_id_jogador_da_vez(id_prox)
 
 
 
