@@ -1,16 +1,19 @@
 class Jogador:
-    def __init__(self, id, nome, mao =[], gritou_uno = False, vencedor = False):
+    def __init__(self, id, nome, mao =[], gritou_uno = False):
         self.id = id
         self.nome = nome
         self.mao = mao
         self.gritou_uno = gritou_uno
-        self.vencedor = vencedor
+        self.vencedor = False
 
     def set_mao(self, mao):
         self.mao = mao
     
     def set_gritou_uno(self, bool):
         self.gritou_uno = bool
+
+    def set_vencedor(self, bool):
+        self.vencedor = bool
 
     def get_mao(self):
         return self.mao

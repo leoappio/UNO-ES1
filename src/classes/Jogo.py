@@ -126,18 +126,20 @@ class Jogo:
             carta_atual = self.converter_dict_cartas_para_objetos([dict_mesa['carta_atual']])[0]
             cor_atual = dict_mesa['cor_atual']
             self.mesa = Mesa(baralho, carta_atual, cor_atual)
-            self.id_jogador_da_vez = dict_jogada['id_jogador_da_vez']
+            self.set_id_jogador_da_vez(dict_jogada['id_jogador_da_vez'])
             self.set_ordem_jogadores()
 
         elif tipo_jogada == 'baixar_uma_carta':
-            self.partida_em_andamento = bool(dict_jogada['partida_em_andamento'])
+            self.set_partida_em_andamento(bool(dict_jogada['partida_em_andamento']))
             jogador = self.get_jogador_por_id(dict_jogada['id_jogador'])
-            carta_baixada = jogador.mao[dict_jogada['indice_carta_baixada']]
+            mao = jogador.get_mao()
 
-            if not self.partida_em_andamento:
-                self.vencedor = dict_jogada['vencedor']
+            partida_em_andamento = self.get_partida_em_andamento()
+            if not partida_em_andamento:
+                self.set_vencedor(dict_jogada['vencedor'])
 
-            if isinstance(carta_baixada, CartaCuringa):
+            baixada_eh_curinga = isinstance(mao[dict_jogada['indice_carta_baixada']], CartaCuringa)
+            if baixada_eh_curinga:
                 cor_escolhida = dict_jogada['cor_escolhida']
                 self.baixar_uma_carta(dict_jogada['id_jogador'], dict_jogada['indice_carta_baixada'], dict_jogada['gritou_uno'], cor=cor_escolhida)
             else:
@@ -148,7 +150,8 @@ class Jogo:
 
 
     def validar_gritou_uno(self, gritou_uno, jogador):
-        if bool(gritou_uno):
+        gritou = bool(gritou_uno)
+        if gritou:
             jogador.gritou_uno = True
             tem_jogador_denunciavel = False
             for jog in self.jogadores:
@@ -196,6 +199,7 @@ class Jogo:
             self.set_partida_em_andamento(False)
             nome = jogador.get_nome()
             self.set_vencedor(nome)
+            jogador.set_vencedor(True)
 
         eh_carta_curinga = isinstance(carta_baixada, CartaCuringa)
         eh_carta_especial = isinstance(carta_baixada, CartaEspecial)
