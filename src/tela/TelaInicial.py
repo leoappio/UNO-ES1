@@ -40,9 +40,15 @@ class TelaInicial(DogPlayerInterface):
 
     def set_indice_carta_curinga(self, indice):
         self.indice_carta_curinga = indice
+        
+    def set_canvas(self, canvas):
+        self.canvas = canvas
+        
+    def set_carta_atual_image(self, nova_imagem):
+        self.carta_atual_image = nova_imagem
 
     def abrir_tela_inicial(self):
-        self.canvas = Canvas(
+        canvas = Canvas(
             self.window,
             bg="#FFFFFF",
             height=900,
@@ -51,10 +57,11 @@ class TelaInicial(DogPlayerInterface):
             highlightthickness=0,
             relief="ridge"
         )
+        self.set_canvas(canvas)
         self.canvas.place(x=0, y=0)
         
         backgroud_image = PhotoImage(
-            file=TelaInicial.relative_to_assets("background.png"))
+            file=self.relative_to_assets("background.png"))
         background = self.canvas.create_image(
             800.0,
             450.0,
@@ -65,7 +72,7 @@ class TelaInicial(DogPlayerInterface):
         # Logotipo
         imagem_logo = PhotoImage(
             file=self.relative_to_assets("logo.png"))
-        self.logo = self.logo = self.canvas.create_image(
+        self.logo = self.canvas.create_image(
             800.0,
             361.0,
             image=imagem_logo,
@@ -392,42 +399,44 @@ class TelaInicial(DogPlayerInterface):
 
 
     def atualizar_interface(self):
-        if self.jogo.partida_em_andamento == True:
+        partida_em_andamento = self.jogo.get_partida_em_andamento()
+        if partida_em_andamento:
             # Atualiza carta atual/mesa
-            self.carta_atual = PhotoImage(
+            nova_imagem = PhotoImage(
                 file=self.relative_to_assets(f'./baralho/{self.jogo.mesa.carta_atual.codigo}.png'))
-            self.canvas.itemconfigure(self.table, image=self.carta_atual, state='normal')
+            self.set_carta_atual_image(nova_imagem)
+            self.canvas.itemconfigure(self.table, image=self.carta_atual_image, state='normal')
+            
+            jogador_local = self.jogo.get_jogador_local()
+            jogador_cima = self.jogo.get_proximo_jogador_por_id(self.jogo.id_local)
+            jogador_direita = self.jogo.get_proximo_jogador_por_id(jogador_cima.id)
             
             # Atualiza cartas do jogador local
             for i in range(14):
-                if i < len(self.jogo.jogador_local.mao):
+                if i < jogador_local.get_mao_size():
                     carta = PhotoImage(
-                        file=self.relative_to_assets(f'./baralho/{self.jogo.jogador_local.mao[i].codigo}.png'))
+                        file=self.relative_to_assets(f'./baralho/{jogador_local.mao[i].codigo}.png'))
                     self.cartas_local_imgs[i] = carta
                     self.cartas_local_btns[i].config(image=self.cartas_local_imgs[i])
                     self.canvas.itemconfigure(self.cartas_local_widgets[i], state='normal')
                 else:
                     self.canvas.itemconfigure(self.cartas_local_widgets[i], state='hidden')
-                self.canvas.itemconfig(self.label_jogador_local, text=self.jogo.jogador_local.nome, state='normal')
             
             # Atualiza cartas do jogador de cima
-            jogador_cima = self.jogo.get_proximo_jogador_por_id(self.jogo.id_local)
-            for i in range(14):
-                if i < len(jogador_cima.mao):
+                if i < jogador_cima.get_mao_size():
                     self.canvas.itemconfigure(self.cartas_cima_widgets[i], state='normal')
                 else:
                     self.canvas.itemconfigure(self.cartas_cima_widgets[i], state='hidden')
             
-            self.canvas.itemconfigure(self.label_jogador_cima, text=jogador_cima.nome, state='normal')
-            
             # Atualiza cartas do jogador a direita
-            jogador_direita = self.jogo.get_proximo_jogador_por_id(jogador_cima.id)
-            for i in range(14):
-                if i < len(jogador_direita.mao):
+                if i < jogador_direita.get_mao_size():
                     self.canvas.itemconfigure(self.cartas_direita_widgets[i], state='normal')
                 else:
                     self.canvas.itemconfigure(self.cartas_direita_widgets[i], state='hidden')
+
             self.canvas.itemconfigure(self.label_jogador_direita, text=jogador_direita.nome, state='normal')
+            self.canvas.itemconfig(self.label_jogador_local, text=jogador_local.nome, state='normal')
+            self.canvas.itemconfigure(self.label_jogador_cima, text=jogador_cima.nome, state='normal')
             
             # Atualiza as informações da rodada
             jogador_da_vez = self.jogo.get_jogador_por_id(self.jogo.id_jogador_da_vez)
@@ -439,22 +448,29 @@ class TelaInicial(DogPlayerInterface):
             self.canvas.itemconfigure(self.infos_turno, text=f"Vez de {jogador_da_vez.nome}\nCor da rodada: {cor_atual}", state='normal')
             
             # Atualiza log
-            for i in range(3):
-                self.canvas.itemconfigure(self.log_widgets[i], text=self.jogo.log[i], state='normal')
-        else:
-            self.canvas.itemconfigure(self.background_vitoria, state='normal')
-            self.canvas.itemconfigure(self.vitoria_text, text=f"O vencedor é \n{self.jogo.vencedor}", state='normal')
-            self.canvas.itemconfigure(self.botao_uno, state='hidden')
-            self.canvas.itemconfigure(self.baralho, state='hidden')
-            self.canvas.itemconfigure(self.botao_verde, state='hidden')
-            self.canvas.itemconfigure(self.botao_amarelo, state='hidden')
-            self.canvas.itemconfigure(self.botao_azul, state='hidden')
-            self.canvas.itemconfigure(self.botao_vermelho, state='hidden')
+            self.atualizar_log()
 
-            for i in range(len(self.cartas_local_widgets)):
-                self.canvas.itemconfigure(self.cartas_local_widgets[i], state='hidden')
+        else:
+            self.abrir_tela_vitoria()
         
         
+    def atualizar_log(self):
+        for i in range(3):
+            self.canvas.itemconfigure(self.log_widgets[i], text=self.jogo.log[i], state='normal')
+            
+    def abrir_tela_vitoria(self):
+        self.canvas.itemconfigure(self.background_vitoria, state='normal')
+        self.canvas.itemconfigure(self.vitoria_text, text=f"O vencedor é \n{self.jogo.vencedor}", state='normal')
+        self.canvas.itemconfigure(self.botao_uno, state='hidden')
+        self.canvas.itemconfigure(self.baralho, state='hidden')
+        self.canvas.itemconfigure(self.botao_verde, state='hidden')
+        self.canvas.itemconfigure(self.botao_amarelo, state='hidden')
+        self.canvas.itemconfigure(self.botao_azul, state='hidden')
+        self.canvas.itemconfigure(self.botao_vermelho, state='hidden')
+
+        for i in range(len(self.cartas_local_widgets)):
+            self.canvas.itemconfigure(self.cartas_local_widgets[i], state='hidden')
+            
     def abrir_tela_partida(self):
         # Esconde widgets da tela principal
         self.canvas.itemconfigure(self.logo, state='hidden')
