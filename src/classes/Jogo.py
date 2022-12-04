@@ -11,7 +11,6 @@ from classes.CartaColorida import CartaColorida
 class Jogo:
     def __init__(self):
         self.jogadores = [None, None, None]
-        self.jogador_local = None
         self.id_local = ''
         self.partida_em_andamento = True
         self.partida_abandonada = False
@@ -44,17 +43,8 @@ class Jogo:
     def get_ordem_jogadores(self):
         return self.ordem_jogadores
 
-
     def get_jogadores(self):
         return self.jogadores
-
-
-    def get_jogadores_remotos(self):
-        jogadores_remotos = []
-        for jogador in self.jogadores:
-            if jogador.id != self.jogador_local:
-                jogadores_remotos.append(jogador)
-        return jogadores_remotos
 
     def get_id_local(self):
         return self.id_local
@@ -66,13 +56,6 @@ class Jogo:
         self.ordem_jogadores = []
         for jogador in self.jogadores:
             self.ordem_jogadores.append(jogador.id)
-    
-
-    def set_jogador_local(self):
-        for jogador in self.jogadores:
-            if jogador.id == self.id_local:
-                self.jogador_local = jogador
-
 
     def set_id_local(self, id):
         self.id_local = id
@@ -114,7 +97,6 @@ class Jogo:
             jogador.set_mao(mao)
 
         self.mesa.pegar_carta_inicio()
-        self.set_jogador_local()
 
 
     def receber_jogada(self, tipo_jogada, dict_jogada):
@@ -135,7 +117,6 @@ class Jogo:
             self.mesa = Mesa(baralho, carta_atual, cor_atual)
             self.id_jogador_da_vez = dict_jogada['id_jogador_da_vez']
             self.set_ordem_jogadores()
-            self.set_jogador_local()
 
         elif tipo_jogada == 'baixar_uma_carta':
             self.partida_em_andamento = bool(dict_jogada['partida_em_andamento'])
@@ -344,7 +325,7 @@ class Jogo:
 
 
     def validar_carta(self, indice):
-        carta = self.jogador_local.mao[indice]
+        carta = self.get_jogador_local().mao[indice]
 
         eh_colorida = isinstance(carta, CartaColorida)
         if not eh_colorida:  
