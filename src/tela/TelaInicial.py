@@ -411,7 +411,7 @@ class TelaInicial(DogPlayerInterface):
             for i in range(14):
                 if i < jogador_local.get_mao_size():
                     carta = PhotoImage(
-                        file=self.relative_to_assets(f'./baralho/{self.jogo.jogador_local.mao[i].codigo}.png'))
+                        file=self.relative_to_assets(f'./baralho/{jogador_local.mao[i].codigo}.png'))
                     self.cartas_local_imgs[i] = carta
                     self.cartas_local_btns[i].config(image=self.cartas_local_imgs[i])
                     self.canvas.itemconfigure(self.cartas_local_widgets[i], state='normal')
@@ -431,7 +431,7 @@ class TelaInicial(DogPlayerInterface):
                     self.canvas.itemconfigure(self.cartas_direita_widgets[i], state='hidden')
 
             self.canvas.itemconfigure(self.label_jogador_direita, text=jogador_direita.nome, state='normal')
-            self.canvas.itemconfig(self.label_jogador_local, text=self.jogo.jogador_local.nome, state='normal')
+            self.canvas.itemconfig(self.label_jogador_local, text=jogador_local.nome, state='normal')
             self.canvas.itemconfigure(self.label_jogador_cima, text=jogador_cima.nome, state='normal')
             
             # Atualiza as informações da rodada
