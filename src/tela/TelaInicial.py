@@ -34,6 +34,12 @@ class TelaInicial(DogPlayerInterface):
     @staticmethod
     def relative_to_assets(path: str) -> Path:
         return ASSETS_PATH / Path(path)
+    
+    def get_indice_carta_curinga(self):
+        return self.indice_carta_curinga
+
+    def set_indice_carta_curinga(self, indice):
+        self.indice_carta_curinga = indice
 
     def abrir_tela_inicial(self):
         self.canvas = Canvas(
@@ -298,7 +304,6 @@ class TelaInicial(DogPlayerInterface):
 
     def receive_withdrawal_notification(self):
         self.jogo.set_partida_em_andamento(False)
-        self.jogo.set_partida_abandonada(True)
         messagebox.showinfo(message="Partida encerrada! Algum jogador foi desconectado.")
         self.window.destroy()
 
@@ -319,19 +324,26 @@ class TelaInicial(DogPlayerInterface):
             self.abrir_tela_partida()
 
 
-    def abaixar_carta(self, indice_carta):
-        if self.jogo.id_jogador_da_vez == self.jogo.id_local:
-            if self.jogo.validar_carta(indice_carta):
-                jogador = self.jogo.get_jogador_local()
-                
-                if isinstance(jogador.mao[indice_carta], CartaCuringa):
-                    self.liberar_escolha_de_cor()
-                    self.indice_carta_curinga = indice_carta
-                else:
-                    self.jogo.baixar_uma_carta(self.jogo.id_local, indice_carta, jogador.gritou_uno)
-                    dict_jogada = self.jogo.get_dict_enviar_jogada('baixar_uma_carta', jogador, True, indice_carta)
-                    self.dog_server_interface.send_move(dict_jogada)
-                    self.atualizar_interface()
+    def abaixar_carta(self, indice):
+        partida_em_andamento = self.jogo.get_partida_em_andamento()
+        vez_do_jogador = self.jogo.get_vez_do_jogador()
+        if partida_em_andamento and vez_do_jogador:
+            tem_carta_valida = self.jogo.tem_carta_valida()
+            if tem_carta_valida:
+                eh_carta_valida = self.jogo.validar_carta(indice)
+                if eh_carta_valida:
+                    jogador = self.jogo.get_jogador_local()
+                    eh_carta_curinga = isinstance(jogador.mao[indice], CartaCuringa)
+                    if eh_carta_curinga:
+                        self.liberar_escolha_de_cor()
+                        self.set_indice_carta_curinga(indice)
+                    else:
+                        id_local = jogador.get_id()
+                        gritou_uno = jogador.get_gritou_uno()
+                        self.jogo.baixar_uma_carta(id_local, indice, gritou_uno)
+                        dict_jogada = self.jogo.get_dict_enviar_jogada('baixar_uma_carta', jogador, True, indice)
+                        self.dog_server_interface.send_move(dict_jogada)
+                        self.atualizar_interface()
     
 
     def gritar_uno(self):
@@ -384,7 +396,7 @@ class TelaInicial(DogPlayerInterface):
             
             # Atualiza cartas do jogador local
             for i in range(14):
-                if i < len(self.jogo.get_jogador_local().mao):
+                if i < len(self.jogo.jogador_local.mao):
                     carta = PhotoImage(
                         file=self.relative_to_assets(f'./baralho/{self.jogo.jogador_local.mao[i].codigo}.png'))
                     self.cartas_local_imgs[i] = carta
@@ -392,7 +404,7 @@ class TelaInicial(DogPlayerInterface):
                     self.canvas.itemconfigure(self.cartas_local_widgets[i], state='normal')
                 else:
                     self.canvas.itemconfigure(self.cartas_local_widgets[i], state='hidden')
-                self.canvas.itemconfig(self.label_jogador_local, text=self.jogo.get_jogador_local().nome, state='normal')
+                self.canvas.itemconfig(self.label_jogador_local, text=self.jogo.jogador_local.nome, state='normal')
             
             # Atualiza cartas do jogador de cima
             jogador_cima = self.jogo.get_proximo_jogador_por_id(self.jogo.id_local)

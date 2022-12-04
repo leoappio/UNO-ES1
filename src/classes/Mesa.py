@@ -14,6 +14,9 @@ class Mesa:
             self.cor_atual = self.carta_atual.cor
         else:
             self.cor_atual = cor
+            
+    def set_carta_atual(self, carta):
+        self.carta_atual = carta
 
     def get_carta_atual(self):
         return self.carta_atual

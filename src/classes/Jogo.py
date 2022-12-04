@@ -51,6 +51,14 @@ class Jogo:
 
     def get_id_jogador_da_vez(self):
         return self.id_jogador_da_vez
+    
+    def get_partida_em_andamento(self):
+        return self.partida_em_andamento
+
+    def get_vez_do_jogador(self):
+        if self.id_local == self.id_jogador_da_vez:
+            return True
+        return False
 
     def set_ordem_jogadores(self):
         self.ordem_jogadores = []
@@ -67,7 +75,10 @@ class Jogo:
         self.partida_em_andamento = bool
 
     def set_partida_abandonada(self, bool):
-        self.partida_abandonada = bool     
+        self.partida_abandonada = bool
+        
+    def set_vencedor(self, nome):
+        self.vencedor = nome
     
     def jogadores_list_para_objetos(self, jogadores_list):
         jogadores = []
@@ -174,46 +185,54 @@ class Jogo:
     def baixar_uma_carta(self, id_jogador, indice, gritou_uno, cor=""):
         jogador = self.get_jogador_por_id(id_jogador)
         self.adicionar_log(f'{jogador.nome} baixou a carta {jogador.mao[indice].codigo}')
-        carta_baixada = jogador.mao[indice]
+        carta_baixada = jogador.get_carta_by_indice(indice)
         jogador.baixar_uma_carta(int(indice))
-        self.mesa.carta_atual = carta_baixada
+        self.mesa.set_carta_atual(carta_baixada)
 
         self.validar_gritou_uno(gritou_uno, jogador)
 
-        if len(jogador.get_mao()) == 0:
-            self.partida_em_andamento = False
-            self.vencedor = jogador.nome
+        tamanho_mao = jogador.get_mao_size()
+        if tamanho_mao == 0:
+            self.set_partida_em_andamento(False)
+            nome = jogador.get_nome()
+            self.set_vencedor(nome)
 
-        if isinstance(carta_baixada, CartaCuringa):
-            self.mesa.carta_atual.cor_escolhida = cor
-            if carta_baixada.mais_quatro:
-                prox_jogador = self.get_proximo_jogador_por_id(jogador.id)
+        eh_carta_curinga = isinstance(carta_baixada, CartaCuringa)
+        eh_carta_especial = isinstance(carta_baixada, CartaEspecial)
+        if eh_carta_curinga:
+            self.mesa.carta_atual.set_cor_escolhida(cor)
+            eh_mais_quatro = carta_baixada.get_mais_quatro()
+            if eh_mais_quatro:
+                prox_jogador = self.get_proximo_jogador_por_id(id_jogador)
                 cartas = self.mesa.baralho.comprar_x_cartas(4)
-                prox_jogador.set_mao(prox_jogador.mao + cartas)
-                self.set_id_jogador_da_vez(jogador.id, pular_dois=True)
+                mao_prox_jogador = prox_jogador.get_mao()
+                prox_jogador.set_mao(mao_prox_jogador + cartas)
+                self.set_id_jogador_da_vez(id_jogador, pular_dois=True)
                 self.adicionar_log(f'{prox_jogador.nome} comprou 4 cartas!')
             else:
-                self.set_id_jogador_da_vez(jogador.id, pular_dois=False)
+                self.set_id_jogador_da_vez(id_jogador, pular_dois=False)
 
-            self.mesa.cor_atual = carta_baixada.cor_escolhida
+            self.mesa.set_cor_atual(cor)
             self.adicionar_log(f'{jogador.nome} escolheu a cor {carta_baixada.cor_escolhida}!')
 
-        elif isinstance(carta_baixada, CartaEspecial):
-            if carta_baixada.tipo == 'bloqueio':
-                self.set_id_jogador_da_vez(jogador.id, pular_dois=True)                 
-                prox_jogador = self.get_proximo_jogador_por_id(jogador.id)
+        elif eh_carta_especial:
+            tipo = carta_baixada.get_tipo()
+            if tipo == 'bloqueio':
+                self.set_id_jogador_da_vez(id_jogador, pular_dois=True)                 
+                prox_jogador = self.get_proximo_jogador_por_id(id_jogador)
                 self.adicionar_log(f'{prox_jogador.nome} foi bloqueado!')
 
-            elif carta_baixada.tipo == 'mais_dois':
-                prox_jogador = self.get_proximo_jogador_por_id(jogador.id)
+            elif tipo == 'mais_dois':
+                prox_jogador = self.get_proximo_jogador_por_id(id_jogador)
                 cartas = self.mesa.baralho.comprar_x_cartas(2)
-                prox_jogador.mao = prox_jogador.mao + cartas
-                self.set_id_jogador_da_vez(jogador.id, pular_dois=True)
+                mao_prox_jogador = prox_jogador.get_mao()
+                prox_jogador.set_mao(mao_prox_jogador + cartas)
+                self.set_id_jogador_da_vez(id_jogador, pular_dois=True)
                 self.adicionar_log(f'{prox_jogador.nome} comprou 2 cartas!')
 
-            elif carta_baixada.tipo == 'inverte':
+            elif tipo == 'inverte':
                 self.inverter_ordem_jogadores()
-                self.set_id_jogador_da_vez(jogador.id)
+                self.set_id_jogador_da_vez(id_jogador)
                 self.adicionar_log(f'{jogador.nome} inverteu o sentido do jogo!')
         else:
             self.set_id_jogador_da_vez(jogador.id)
