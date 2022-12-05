@@ -30,7 +30,8 @@ class Jogo:
             proximo_id = self.ordem_jogadores[indice_jogador_atual+1]
 
         for jogador in self.jogadores:
-            if jogador.id == proximo_id:
+            id = jogador.get_id()
+            if id == proximo_id:
                 return jogador
 
     
@@ -141,30 +142,35 @@ class Jogo:
             baixada_eh_curinga = isinstance(mao[dict_jogada['indice_carta_baixada']], CartaCuringa)
             if baixada_eh_curinga:
                 cor_escolhida = dict_jogada['cor_escolhida']
-                self.baixar_uma_carta(dict_jogada['id_jogador'], dict_jogada['indice_carta_baixada'], dict_jogada['gritou_uno'], cor=cor_escolhida)
+                self.baixar_uma_carta(dict_jogada['id_jogador'], dict_jogada['indice_carta_baixada'], bool(dict_jogada['gritou_uno']), cor=cor_escolhida)
             else:
-                self.baixar_uma_carta(dict_jogada['id_jogador'], dict_jogada['indice_carta_baixada'], dict_jogada['gritou_uno'])
+                self.baixar_uma_carta(dict_jogada['id_jogador'], dict_jogada['indice_carta_baixada'], bool(dict_jogada['gritou_uno']))
 
         elif tipo_jogada == 'comprar_uma_carta':
-            self.comprar_uma_carta(dict_jogada['id_jogador'], dict_jogada['gritou_uno'], dict_jogada['finalizou_turno'], False)
+            self.comprar_uma_carta(dict_jogada['id_jogador'], bool(dict_jogada['gritou_uno']), bool(dict_jogada['finalizou_turno']), False)
 
 
     def validar_gritou_uno(self, gritou_uno, jogador):
-        gritou = bool(gritou_uno)
-        if gritou:
-            jogador.gritou_uno = True
+        if gritou_uno:
+            jogador.set_gritou_uno(True)
             tem_jogador_denunciavel = False
             for jog in self.jogadores:
-                if len(jog.mao) == 1 and not jog.gritou_uno:
+                qntd_cartas = jog.get_mao_size()
+                gritou_uno = jog.get_gritou_uno()
+                if qntd_cartas == 1 and not gritou_uno:
                     tem_jogador_denunciavel = True
-                    carta_comprada = self.mesa.baralho.pegar_carta()
-                    jog.mao.append(carta_comprada)
-                    self.adicionar_log(f'{jog.nome} foi denunciado e comprou uma carta!')
+                    baralho = self.mesa.get_baralho()
+                    carta_comprada = baralho.pegar_carta()
+                    jog.adicionar_cartas_na_mao([carta_comprada])
+                    nome = jog.get_nome()
+                    self.adicionar_log(f'{nome} foi denunciado e comprou uma carta!')
             
-            if tem_jogador_denunciavel or (len(jogador.mao) == 1):
-                self.adicionar_log(f'{jogador.nome} gritou UNO!')
+            qte_cartas_jogador = jogador.get_mao_size()
+            nome_jogador = jogador.get_nome()
+            if tem_jogador_denunciavel or (qte_cartas_jogador == 1):
+                self.adicionar_log(f'{nome_jogador} gritou UNO!')
             else:
-                jogador.gritou_uno = False
+                jogador.set_gritou_uno(False)
             
 
 
