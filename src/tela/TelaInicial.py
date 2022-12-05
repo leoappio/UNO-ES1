@@ -387,7 +387,6 @@ class TelaInicial(DogPlayerInterface):
         indice = self.get_indice_carta_curinga()
         carta = jogador.get_carta_by_indice(indice)
         carta.set_cor_escolhida(cor)
-        self.jogo.mesa.carta_atual.cor_escolhida = cor
         id_local = self.jogo.get_id_local()
         gritou_uno = jogador.get_gritou_uno()
         self.jogo.baixar_uma_carta(id_local, indice, gritou_uno, cor=cor)
