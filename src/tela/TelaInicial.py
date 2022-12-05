@@ -41,14 +41,11 @@ class TelaInicial(DogPlayerInterface):
     def set_indice_carta_curinga(self, indice):
         self.indice_carta_curinga = indice
         
-    def set_canvas(self, canvas):
-        self.canvas = canvas
-        
     def set_carta_atual_image(self, nova_imagem):
         self.carta_atual_image = nova_imagem
 
     def abrir_tela_inicial(self):
-        canvas = Canvas(
+        self.canvas = Canvas(
             self.window,
             bg="#FFFFFF",
             height=900,
@@ -57,7 +54,6 @@ class TelaInicial(DogPlayerInterface):
             highlightthickness=0,
             relief="ridge"
         )
-        self.set_canvas(canvas)
         self.canvas.place(x=0, y=0)
         
         backgroud_image = PhotoImage(
@@ -85,7 +81,7 @@ class TelaInicial(DogPlayerInterface):
             image=botao_jogar_image,
             command=lambda: self.iniciar_partida(),
         )
-        self.botaoJogar = self.canvas.create_window(616.0, 651.0, width=359.0, height=112.0, anchor='nw', window=botao_jogar)
+        self.botao_jogar = self.canvas.create_window(616.0, 651.0, width=359.0, height=112.0, anchor='nw', window=botao_jogar)
     
         # Criação do modal para coletar o nome do jogador
         player_name = simpledialog.askstring(
