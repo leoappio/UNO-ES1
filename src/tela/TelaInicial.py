@@ -366,7 +366,7 @@ class TelaInicial(DogPlayerInterface):
         id_local = self.jogo.get_id_local()
         if id_atual == id_local:
             qnt_de_cartas = jogador.get_mao_size()
-            if qnt_de_cartas < 20:
+            if qnt_de_cartas < 14:
                 gritou_uno = jogador.get_gritou_uno()
                 self.jogo.comprar_uma_carta(id_local, gritou_uno, eh_local=True)
                 tem_carta_valida = self.jogo.tem_carta_valida()
