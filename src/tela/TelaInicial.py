@@ -384,20 +384,26 @@ class TelaInicial(DogPlayerInterface):
 
     def escolher_uma_cor(self, cor):
         jogador = self.jogo.get_jogador_local()
-        jogador.mao[self.indice_carta_curinga].cor_escolhida = cor
+        indice = self.get_indice_carta_curinga()
+        carta = jogador.get_carta_by_indice(indice)
+        carta.set_cor_escolhida(cor)
         self.jogo.mesa.carta_atual.cor_escolhida = cor
-        self.jogo.baixar_uma_carta(self.jogo.id_local, self.indice_carta_curinga, jogador.gritou_uno, cor=cor)
+        id_local = self.jogo.get_id_local()
+        gritou_uno = jogador.get_gritou_uno()
+        self.jogo.baixar_uma_carta(id_local, indice, gritou_uno, cor=cor)
         dict_jogada = self.jogo.get_dict_enviar_jogada('baixar_uma_carta', jogador, finalizou_turno=True, indice_carta_baixada=self.indice_carta_curinga)
         self.dog_server_interface.send_move(dict_jogada)
         
+        self.esconder_escolha_de_cor()
+        self.atualizar_interface()
+
+
+    def esconder_escolha_de_cor(self):
         self.canvas.itemconfigure(self.botao_verde, state='hidden')
         self.canvas.itemconfigure(self.botao_amarelo, state='hidden')
         self.canvas.itemconfigure(self.botao_azul, state='hidden')
         self.canvas.itemconfigure(self.botao_vermelho, state='hidden')
         
-        self.atualizar_interface()
-
-
     def atualizar_interface(self):
         partida_em_andamento = self.jogo.get_partida_em_andamento()
         if partida_em_andamento:
