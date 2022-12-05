@@ -81,7 +81,7 @@ class TelaInicial(DogPlayerInterface):
             image=botao_jogar_image,
             command=lambda: self.iniciar_partida(),
         )
-        self.botao_jogar = self.canvas.create_window(616.0, 651.0, width=359.0, height=112.0, anchor='nw', window=botao_jogar)
+        self.botaoJogar = self.canvas.create_window(616.0, 651.0, width=359.0, height=112.0, anchor='nw', window=botao_jogar)
     
         # Criação do modal para coletar o nome do jogador
         player_name = simpledialog.askstring(
