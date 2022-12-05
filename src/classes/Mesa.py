@@ -16,7 +16,7 @@ class Mesa:
             self.cor_atual = cor
             
     def set_carta_atual(self, carta):
-        self.baralho.cartas.append(self.carta_atual)
+        self.baralho.cartas.insert(0, self.carta_atual)
         self.carta_atual = carta
 
     def get_carta_atual(self):
